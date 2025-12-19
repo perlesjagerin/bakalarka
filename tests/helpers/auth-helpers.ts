@@ -37,8 +37,9 @@ export async function loginUser(page: Page, email: string, password: string) {
   await page.fill('input#password', password);
   await page.click('button[type="submit"]');
   
-  // Wait for navigation
-  await page.waitForTimeout(3000);
+  // Wait for navigation and ensure user menu is visible
+  await page.waitForTimeout(2000);
+  await page.locator('[data-testid="user-menu"]').waitFor({ state: 'visible', timeout: 5000 });
 }
 
 /**

@@ -90,6 +90,7 @@ export default function CreateEventPage() {
                   type="text"
                   placeholder="Např. Letní hudební festival"
                   className={`input pl-10 ${errors.title ? 'border-red-500' : ''}`}
+                  data-testid="event-title-input"
                 />
               </div>
               {errors.title && (
@@ -107,6 +108,7 @@ export default function CreateEventPage() {
                 rows={5}
                 placeholder="Podrobný popis vaší akce..."
                 className={`input ${errors.description ? 'border-red-500' : ''}`}
+                data-testid="event-description-input"
               />
               {errors.description && (
                 <p className="text-red-600 text-sm mt-1">{errors.description.message}</p>
@@ -121,6 +123,7 @@ export default function CreateEventPage() {
               <select
                 {...register('category')}
                 className={`input ${errors.category ? 'border-red-500' : ''}`}
+                data-testid="event-category-select"
               >
                 <option value="">Vyberte kategorii</option>
                 {EVENT_CATEGORIES.map((cat) => (
@@ -146,6 +149,7 @@ export default function CreateEventPage() {
                   type="url"
                   placeholder="https://example.com/image.jpg"
                   className={`input pl-10 ${errors.imageUrl ? 'border-red-500' : ''}`}
+                  data-testid="event-image-input"
                 />
               </div>
               {errors.imageUrl && (
@@ -172,6 +176,7 @@ export default function CreateEventPage() {
                   {...register('startDate')}
                   type="datetime-local"
                   className={`input pl-10 ${errors.startDate ? 'border-red-500' : ''}`}
+                  data-testid="event-start-date-input"
                 />
               </div>
               {errors.startDate && (
@@ -190,6 +195,7 @@ export default function CreateEventPage() {
                   {...register('endDate')}
                   type="datetime-local"
                   className={`input pl-10 ${errors.endDate ? 'border-red-500' : ''}`}
+                  data-testid="event-end-date-input"
                 />
               </div>
               {errors.endDate && (
@@ -209,6 +215,7 @@ export default function CreateEventPage() {
                   type="text"
                   placeholder="Např. Lucerna Music Bar, Praha"
                   className={`input pl-10 ${errors.location ? 'border-red-500' : ''}`}
+                  data-testid="event-location-input"
                 />
               </div>
               {errors.location && (
@@ -235,6 +242,7 @@ export default function CreateEventPage() {
                     min="1"
                     placeholder="100"
                     className={`input pl-10 ${errors.totalTickets ? 'border-red-500' : ''}`}
+                    data-testid="event-total-tickets-input"
                   />
                 </div>
                 {errors.totalTickets && (
@@ -256,6 +264,7 @@ export default function CreateEventPage() {
                     step="0.01"
                     placeholder="0"
                     className={`input pl-10 ${errors.ticketPrice ? 'border-red-500' : ''}`}
+                    data-testid="event-ticket-price-input"
                   />
                 </div>
                 {errors.ticketPrice && (
@@ -274,6 +283,7 @@ export default function CreateEventPage() {
               type="submit"
               disabled={isSubmitting}
               className="btn-primary flex-1"
+              data-testid="create-event-submit-button"
             >
               {isSubmitting ? 'Vytvářím...' : 'Vytvořit akci (jako koncept)'}
             </button>

@@ -159,7 +159,7 @@ export default function MyEventsPage() {
               : 'Spravujte své události a sledujte prodej vstupenek'}
           </p>
         </div>
-        <Link to="/events/create" className="btn-primary flex items-center gap-2">
+        <Link to="/events/create" className="btn-primary flex items-center gap-2" data-testid="create-event-button">
           <Plus size={20} />
           Vytvořit akci
         </Link>
@@ -217,7 +217,7 @@ export default function MyEventsPage() {
             {filter === 'all' ? 'Zatím jste nevytvořili žádnou akci.' : 'Žádné akce v této kategorii.'}
           </p>
           {filter === 'all' && (
-            <Link to="/events/create" className="btn-primary inline-flex items-center gap-2">
+            <Link to="/events/create" className="btn-primary inline-flex items-center gap-2" data-testid="create-first-event-button">
               <Plus size={20} />
               Vytvořit první akci
             </Link>

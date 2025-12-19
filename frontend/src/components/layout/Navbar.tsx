@@ -57,6 +57,7 @@ export default function Navbar() {
                   <Link
                     to="/my-events"
                     className="text-gray-700 hover:text-primary-600 font-medium flex items-center space-x-1"
+                    data-testid="my-events-link"
                   >
                     <FileText size={18} />
                     <span>{user?.role === 'ADMIN' ? 'Správa akcí' : 'Moje akce'}</span>
