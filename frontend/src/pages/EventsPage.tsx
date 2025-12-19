@@ -3,7 +3,8 @@ import { Search } from 'lucide-react';
 import EventCard from '../components/EventCard';
 import { Event } from '../types';
 import api from '../lib/axios';
-import toast from 'react-hot-toast';
+import { ERROR_MESSAGES } from '../constants/messages';
+import { showErrorToast } from '../utils/errorHandling';
 import { EVENT_CATEGORIES } from '../constants/categories';
 
 export default function EventsPage() {
@@ -24,7 +25,7 @@ export default function EventsPage() {
       const response = await api.get('/events', { params });
       setEvents(response.data.events);
     } catch (error) {
-      toast.error('Chyba při načítání akcí');
+      showErrorToast(error, ERROR_MESSAGES.LOAD_EVENTS_ERROR);
     } finally {
       setIsLoading(false);
     }
