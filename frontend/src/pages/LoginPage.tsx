@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import toast from 'react-hot-toast';
+import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '../constants/messages';
+import { showErrorToast, showSuccessToast } from '../utils/errorHandling';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -13,24 +14,15 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted!', { email, password: '***' });
     setIsLoading(true);
 
     try {
-      console.log('Calling login...');
       await login(email, password);
-      console.log('Login successful!');
-      toast.success('Úspěšně přihlášen!');
+      showSuccessToast(SUCCESS_MESSAGES.LOGIN_SUCCESS);
       navigate('/');
-    } catch (error: any) {
-      console.error('Login error:', error);
-      console.error('Error response:', error.response);
-      console.error('Error data:', error.response?.data);
-      const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message || 'Chyba při přihlašování';
-      console.log('Showing toast with message:', errorMessage);
-      toast.error(errorMessage);
+    } catch (error) {
+      showErrorToast(error, ERROR_MESSAGES.LOGIN_ERROR);
     } finally {
-      console.log('Setting isLoading to false');
       setIsLoading(false);
     }
   };
