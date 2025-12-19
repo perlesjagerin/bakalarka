@@ -19,6 +19,7 @@ export const ERROR_MESSAGES = {
   CREATE_EVENT_ERROR: 'Chyba při vytváření akce',
   UPDATE_EVENT_ERROR: 'Chyba při aktualizaci akce',
   DELETE_EVENT_ERROR: 'Chyba při mazání akce',
+  UPDATE_EVENT_STATUS_ERROR: 'Chyba při změně stavu akce',
   
   // Reservations
   LOAD_RESERVATIONS_ERROR: 'Chyba při načítání rezervací',
@@ -57,6 +58,8 @@ export const SUCCESS_MESSAGES = {
   EVENT_DELETED: 'Akce byla smazána',
   EVENT_PUBLISHED: 'Akce byla publikována',
   EVENT_CANCELLED: 'Akce byla zrušena',
+  EVENT_COMPLETED: 'Akce byla označena jako proběhlá',
+  EVENT_DRAFT: 'Akce byla vrácena do konceptů',
   EVENT_STATUS_CHANGED: 'Stav akce byl změněn',
   
   // Reservations
@@ -96,6 +99,7 @@ export const VALIDATION_MESSAGES = {
   RESPONSE_REQUIRED: 'Prosím vyplňte odpověď',
   MIN_DESCRIPTION_LENGTH: 'Popis musí mít alespoň 20 znaků',
   MIN_TITLE_LENGTH: 'Název musí mít alespoň 3 znaky',
+  MIN_TICKET_COUNT: 'Počet vstupenek musí být alespoň 1',
 } as const;
 
 export const CONFIRMATION_MESSAGES = {

@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import MyEventCard from '../components/MyEventCard';
 import api from '../lib/axios';
-import toast from 'react-hot-toast';
+import { SUCCESS_MESSAGES, ERROR_MESSAGES, CONFIRMATION_MESSAGES } from '../constants/messages';
+import { showErrorToast, showSuccessToast } from '../utils/errorHandling';
 import { useAuthStore } from '../store/authStore';
 
 interface Event {
@@ -45,34 +46,34 @@ export default function MyEventsPage() {
       const response = await api.get('/events/my');
       setEvents(response.data.events);
     } catch (error) {
-      toast.error('Nepodařilo se načíst vaše akce');
+      showErrorToast(error, ERROR_MESSAGES.LOAD_EVENTS_ERROR);
     } finally {
       setLoading(false);
     }
   };
 
   const handleDeleteEvent = async (eventId: string) => {
-    if (!confirm('Opravdu chcete smazat tuto akci?')) {
+    if (!confirm(CONFIRMATION_MESSAGES.DELETE_EVENT)) {
       return;
     }
 
     try {
       await api.delete(`/events/${eventId}`);
-      toast.success('Akce byla smazána');
+      showSuccessToast(SUCCESS_MESSAGES.EVENT_DELETED);
       setEvents(events.filter(e => e.id !== eventId));
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Chyba při mazání akce');
+    } catch (error) {
+      showErrorToast(error, ERROR_MESSAGES.DELETE_EVENT_ERROR);
     }
   };
 
   const handleStatusChange = async (eventId: string, newStatus: string) => {
     // Confirm pro kritické změny
     if (newStatus === 'CANCELLED') {
-      if (!confirm('Opravdu chcete zrušit tuto akci? Všechny rezervace budou stornovány.')) {
+      if (!confirm(CONFIRMATION_MESSAGES.CANCEL_EVENT)) {
         return;
       }
     } else if (newStatus === 'PUBLISHED') {
-      if (!confirm('Opravdu chcete publikovat tuto akci? Stane se veřejně dostupnou.')) {
+      if (!confirm(CONFIRMATION_MESSAGES.PUBLISH_EVENT)) {
         return;
       }
     }
@@ -81,18 +82,16 @@ export default function MyEventsPage() {
       await api.patch(`/events/${eventId}`, { status: newStatus });
       
       const statusMessages: Record<string, string> = {
-        'PUBLISHED': 'Akce byla publikována',
-        'CANCELLED': 'Akce byla zrušena',
-        'COMPLETED': 'Akce byla označena jako proběhlá',
-        'DRAFT': 'Akce byla vrácena do konceptů'
+        'PUBLISHED': SUCCESS_MESSAGES.EVENT_PUBLISHED,
+        'CANCELLED': SUCCESS_MESSAGES.EVENT_CANCELLED,
+        'COMPLETED': SUCCESS_MESSAGES.EVENT_COMPLETED,
+        'DRAFT': SUCCESS_MESSAGES.EVENT_DRAFT
       };
       
-      toast.success(statusMessages[newStatus] || 'Stav akce byl změněn');
+      showSuccessToast(statusMessages[newStatus] || SUCCESS_MESSAGES.EVENT_STATUS_CHANGED);
       fetchMyEvents();
-    } catch (error: any) {
-      console.error('Error changing event status:', error);
-      const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message || 'Chyba při změně stavu akce';
-      toast.error(errorMessage);
+    } catch (error) {
+      showErrorToast(error, ERROR_MESSAGES.UPDATE_EVENT_STATUS_ERROR);
     }
   };
 
