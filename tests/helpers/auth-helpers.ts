@@ -8,13 +8,20 @@ export async function registerUser(
   email: string,
   password: string,
   firstName: string,
-  lastName: string
+  lastName: string,
+  role: 'USER' | 'ORGANIZER' = 'USER'
 ) {
   await page.goto('/register');
   await page.fill('input#email', email);
   await page.fill('input#password', password);
   await page.fill('input#firstName', firstName);
   await page.fill('input#lastName', lastName);
+  
+  // Select role if it's organizer
+  if (role === 'ORGANIZER') {
+    await page.selectOption('select#role', 'ORGANIZER');
+  }
+  
   await page.click('button[type="submit"]');
   
   // Wait for navigation or error message

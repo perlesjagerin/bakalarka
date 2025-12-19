@@ -1,17 +1,129 @@
 import { test, expect } from '@playwright/test';
 import { testUsers, testEvent } from './helpers/test-users';
-import { loginUser } from './helpers/auth-helpers';
+import { registerUser, loginUser } from './helpers/auth-helpers';
 
 test.describe('Create Event Flow', () => {
-  test.beforeEach(async ({ page }) => {
-    // First need to register and login as organizer
-    // For simplicity, we'll skip login and assume organizer exists
-    // In real scenario, you'd create an organizer account first
+  test.describe.configure({ mode: 'serial' });
+
+  const organizerEmail = `organizer.${Date.now()}@example.com`;
+
+  test('should register as organizer', async ({ page }) => {
+    await registerUser(
+      page,
+      organizerEmail,
+      testUsers.organizer.password,
+      testUsers.organizer.firstName,
+      testUsers.organizer.lastName,
+      'ORGANIZER'
+    );
+
+    // Wait for processing
+    await page.waitForTimeout(2000);
+
+    // Verify registration was successful (user menu visible)
+    const userMenu = page.locator('[data-testid="user-menu"]');
+    await expect(userMenu).toBeVisible({ timeout: 5000 });
   });
 
-  test.skip('Event creation tests - need organizer setup', () => {
-    // These tests require proper organizer account setup
-    // Will be completed during refactoring when we add proper test data seeding
+  test('should navigate to My Events page', async ({ page }) => {
+    // Login as organizer
+    await loginUser(page, organizerEmail, testUsers.organizer.password);
+
+    // Navigate to My Events
+    await page.goto('/my-events');
+
+    // Verify we're on the right page
+    await page.waitForTimeout(1000);
+    expect(page.url()).toContain('/my-events');
+  });
+
+  test('should access Create Event page from My Events', async ({ page }) => {
+    await loginUser(page, organizerEmail, testUsers.organizer.password);
+    await page.goto('/my-events');
+
+    // Find and click "Vytvořit akci" or "Create Event" button
+    const createButton = page.locator('text=/vytvořit akci|create event/i').first();
+    if (await createButton.isVisible({ timeout: 2000 })) {
+      await createButton.click();
+    } else {
+      // Direct navigation if button not found
+      await page.goto('/create-event');
+    }
+
+    // Verify we're on create event page
+    await page.waitForTimeout(1000);
+    expect(page.url()).toContain('/create-event');
+  });
+
+  test('should display create event form', async ({ page }) => {
+    await loginUser(page, organizerEmail, testUsers.organizer.password);
+    await page.goto('/create-event');
+
+    // Verify form elements are present
+    const titleInput = page.locator('input[placeholder*="Letní"]').or(page.locator('label:has-text("Název")').locator('..').locator('input')).first();
+    await expect(titleInput).toBeVisible({ timeout: 3000 });
+
+    const descriptionTextarea = page.locator('textarea').first();
+    await expect(descriptionTextarea).toBeVisible();
+
+    const categorySelect = page.locator('select').first();
+    await expect(categorySelect).toBeVisible();
+  });
+
+  test('should create a new event successfully', async ({ page }) => {
+    await loginUser(page, organizerEmail, testUsers.organizer.password);
+    await page.goto('/create-event');
+
+    const uniqueEventName = `E2E Test Event ${Date.now()}`;
+
+    // Fill the form step by step
+    // Title
+    const titleInput = page.locator('input[placeholder*="Letní"]').or(page.locator('label:has-text("Název")').locator('..').locator('input')).first();
+    await titleInput.fill(uniqueEventName);
+
+    // Description
+    const descriptionTextarea = page.locator('textarea').first();
+    await descriptionTextarea.fill(testEvent.description);
+
+    // Category
+    const categorySelect = page.locator('select').first();
+    await categorySelect.selectOption(testEvent.category);
+
+    // Location
+    const locationInput = page.locator('input[placeholder*="Adresa"]').or(page.locator('label:has-text("Místo")').locator('..').locator('input')).first();
+    await locationInput.fill(testEvent.location);
+
+    // Dates (find datetime-local inputs)
+    const dateInputs = await page.locator('input[type="datetime-local"]').all();
+    if (dateInputs.length >= 2) {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(18, 0, 0, 0);
+      const startDateString = tomorrow.toISOString().slice(0, 16);
+      await dateInputs[0].fill(startDateString);
+
+      const dayAfter = new Date();
+      dayAfter.setDate(dayAfter.getDate() + 1);
+      dayAfter.setHours(22, 0, 0, 0);
+      const endDateString = dayAfter.toISOString().slice(0, 16);
+      await dateInputs[1].fill(endDateString);
+    }
+
+    // Tickets and price (number inputs)
+    const numberInputs = await page.locator('input[type="number"]').all();
+    if (numberInputs.length >= 2) {
+      await numberInputs[0].fill(testEvent.maxAttendees.toString()); // totalTickets
+      await numberInputs[1].fill(testEvent.ticketPrice.toString()); // ticketPrice
+    }
+
+    // Submit the form
+    await page.click('button[type="submit"]');
+
+    // Wait for redirect or success message
+    await page.waitForTimeout(3000);
+
+    // Verify we're redirected away from create-event page
+    expect(page.url()).not.toContain('/create-event');
   });
 });
 
