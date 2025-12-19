@@ -1,0 +1,44 @@
+{
+  "name": "ticket-reservation-system",
+  "version": "1.0.0",
+  "description": "Webová aplikace pro rezervaci vstupenek na studentské akce",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "test:coverage": "npm run test --workspace=backend -- --coverage && npm run test --workspace=frontend -- --coverage",
+    "test:coverage:backend": "npm run test --workspace=backend -- --coverage",
+    "test:coverage:frontend": "npm run test --workspace=frontend -- --coverage",
+    "lint": "npm run lint --workspaces",
+    "test:api": "node backend/tests/performance/api-performance.js",
+    "test:lighthouse": "cd frontend && npm run build && cd .. && lhci autorun --config=scripts/lighthouse/lighthouse.config.js",
+    "test:performance": "npm run test:api && npm run test:lighthouse",
+    "test:security": "node backend/tests/security/security-test.js"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^14.3.1",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/jest": "^29.5.14",
+    "@types/supertest": "^6.0.3",
+    "@vitest/ui": "^1.6.1",
+    "concurrently": "^8.2.2",
+    "jest": "^29.7.0",
+    "jsdom": "^23.2.0",
+    "supertest": "^6.3.4",
+    "ts-jest": "^29.4.6",
+    "vitest": "^1.6.1"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

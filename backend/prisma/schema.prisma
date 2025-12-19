@@ -1,0 +1,157 @@
+// This is your Prisma schema file
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  ORGANIZER
+  USER
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+  COMPLETED
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum ComplaintStatus {
+  SUBMITTED
+  IN_REVIEW
+  REJECTED
+  RESOLVED
+}
+
+model User {
+  id            String        @id @default(uuid())
+  email         String        @unique
+  password      String
+  firstName     String
+  lastName      String
+  role          UserRole      @default(USER)
+  isActive      Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Relations
+  organizedEvents Event[]      @relation("OrganizerEvents")
+  reservations    Reservation[]
+  complaints      Complaint[]
+
+  @@index([email])
+  @@map("users")
+}
+
+model Event {
+  id              String        @id @default(uuid())
+  title           String
+  description     String
+  location        String
+  startDate       DateTime
+  endDate         DateTime
+  category        String
+  imageUrl        String?
+  totalTickets    Int
+  availableTickets Int
+  ticketPrice     Decimal       @db.Decimal(10, 2)
+  status          EventStatus   @default(DRAFT)
+  organizerId     String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  organizer       User          @relation("OrganizerEvents", fields: [organizerId], references: [id])
+  reservations    Reservation[]
+
+  @@index([organizerId])
+  @@index([status])
+  @@index([startDate])
+  @@index([category])
+  @@map("events")
+}
+
+model Reservation {
+  id              String            @id @default(uuid())
+  eventId         String
+  userId          String
+  ticketCount     Int
+  totalAmount     Decimal           @db.Decimal(10, 2)
+  status          ReservationStatus @default(PENDING)
+  reservationCode String            @unique
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  // Relations
+  event           Event             @relation(fields: [eventId], references: [id])
+  user            User              @relation(fields: [userId], references: [id])
+  payment         Payment?
+  complaints      Complaint[]
+
+  @@index([userId])
+  @@index([eventId])
+  @@index([status])
+  @@index([reservationCode])
+  @@map("reservations")
+}
+
+model Payment {
+  id              String        @id @default(uuid())
+  reservationId   String        @unique
+  amount          Decimal       @db.Decimal(10, 2)
+  status          PaymentStatus @default(PENDING)
+  stripePaymentId String?
+  paymentMethod   String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  reservation     Reservation   @relation(fields: [reservationId], references: [id])
+
+  @@index([stripePaymentId])
+  @@map("payments")
+}
+
+model Complaint {
+  id              String          @id @default(uuid())
+  reservationId   String
+  userId          String
+  reason          String
+  description     String
+  status          ComplaintStatus @default(SUBMITTED)
+  adminResponse   String?
+  refundIssued    Boolean         @default(false)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  resolvedAt      DateTime?
+
+  // Relations
+  reservation     Reservation     @relation(fields: [reservationId], references: [id])
+  user            User            @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([reservationId])
+  @@index([status])
+  @@map("complaints")
+}
