@@ -11,10 +11,10 @@ export async function registerUser(
   lastName: string
 ) {
   await page.goto('/register');
-  await page.fill('input[name="email"]', email);
-  await page.fill('input[name="password"]', password);
-  await page.fill('input[name="firstName"]', firstName);
-  await page.fill('input[name="lastName"]', lastName);
+  await page.fill('input#email', email);
+  await page.fill('input#password', password);
+  await page.fill('input#firstName', firstName);
+  await page.fill('input#lastName', lastName);
   await page.click('button[type="submit"]');
   
   // Wait for redirect to login or home page
@@ -26,8 +26,8 @@ export async function registerUser(
  */
 export async function loginUser(page: Page, email: string, password: string) {
   await page.goto('/login');
-  await page.fill('input[name="email"]', email);
-  await page.fill('input[name="password"]', password);
+  await page.fill('input#email', email);
+  await page.fill('input#password', password);
   await page.click('button[type="submit"]');
   
   // Wait for redirect to events page

@@ -11,10 +11,10 @@ test.describe('Authentication Flow', () => {
     await page.goto('/register');
 
     // Fill registration form
-    await page.fill('input[name="email"]', uniqueEmail);
-    await page.fill('input[name="password"]', testUsers.regularUser.password);
-    await page.fill('input[name="firstName"]', testUsers.regularUser.firstName);
-    await page.fill('input[name="lastName"]', testUsers.regularUser.lastName);
+    await page.fill('input#email', uniqueEmail);
+    await page.fill('input#password', testUsers.regularUser.password);
+    await page.fill('input#firstName', testUsers.regularUser.firstName);
+    await page.fill('input#lastName', testUsers.regularUser.lastName);
 
     // Submit form
     await page.click('button[type="submit"]');
@@ -51,8 +51,8 @@ test.describe('Authentication Flow', () => {
   test('should show error for invalid credentials', async ({ page }) => {
     await page.goto('/login');
 
-    await page.fill('input[name="email"]', 'nonexistent@example.com');
-    await page.fill('input[name="password"]', 'WrongPassword123!');
+    await page.fill('input#email', 'nonexistent@example.com');
+    await page.fill('input#password', 'WrongPassword123!');
     await page.click('button[type="submit"]');
 
     // Wait for error message
@@ -88,10 +88,10 @@ test.describe('Authentication Flow', () => {
 
     // Try to register again with same email
     await page.goto('/register');
-    await page.fill('input[name="email"]', uniqueEmail);
-    await page.fill('input[name="password"]', testUsers.regularUser.password);
-    await page.fill('input[name="firstName"]', testUsers.regularUser.firstName);
-    await page.fill('input[name="lastName"]', testUsers.regularUser.lastName);
+    await page.fill('input#email', uniqueEmail);
+    await page.fill('input#password', testUsers.regularUser.password);
+    await page.fill('input#firstName', testUsers.regularUser.firstName);
+    await page.fill('input#lastName', testUsers.regularUser.lastName);
     await page.click('button[type="submit"]');
 
     // Wait for error message
@@ -107,10 +107,10 @@ test.describe('Authentication Flow', () => {
   test('should validate password requirements', async ({ page }) => {
     await page.goto('/register');
 
-    await page.fill('input[name="email"]', `weak.${Date.now()}@example.com`);
-    await page.fill('input[name="password"]', '123'); // Weak password
-    await page.fill('input[name="firstName"]', 'Test');
-    await page.fill('input[name="lastName"]', 'User');
+    await page.fill('input#email', `weak.${Date.now()}@example.com`);
+    await page.fill('input#password', '123'); // Weak password
+    await page.fill('input#firstName', 'Test');
+    await page.fill('input#lastName', 'User');
     await page.click('button[type="submit"]');
 
     // Wait for validation error
