@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import prisma from '../config/database';
 import { AppError } from '../middleware/error.middleware';
 import { AuthRequest } from '../middleware/auth.middleware';
+import { emailService } from '../utils/emailService';
 
 if (!process.env.STRIPE_SECRET_KEY) {
   console.error('❌ STRIPE_SECRET_KEY není nastavený v .env souboru!');
@@ -202,6 +203,29 @@ export const handleWebhook = async (
           where: { id: reservationId },
           data: { status: 'CONFIRMED' }
         });
+
+        // Send payment confirmation email (non-blocking)
+        try {
+          const reservation = await prisma.reservation.findUnique({
+            where: { id: reservationId },
+            include: {
+              event: { select: { title: true } },
+              user: { select: { email: true, firstName: true } }
+            }
+          });
+
+          if (reservation) {
+            emailService.sendPaymentConfirmation(
+              reservation.user.email,
+              reservation.user.firstName,
+              reservation.event.title,
+              reservation.reservationCode,
+              Number(reservation.totalAmount)
+            ).catch(err => console.error('Failed to send payment confirmation email:', err));
+          }
+        } catch (emailError) {
+          console.error('Error sending payment confirmation email:', emailError);
+        }
 
         break;
       }

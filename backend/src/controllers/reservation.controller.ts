@@ -3,6 +3,9 @@ import { z } from 'zod';
 import prisma from '../config/database';
 import { AppError } from '../middleware/error.middleware';
 import { AuthRequest } from '../middleware/auth.middleware';
+import { emailService } from '../utils/emailService';
+import { format } from 'date-fns';
+import { cs } from 'date-fns/locale';
 
 const createReservationSchema = z.object({
   eventId: z.string().uuid('Neplatné ID akce'),
@@ -125,6 +128,30 @@ export const createReservation = async (
           }
         })
       : reservation;
+
+    // Send reservation confirmation email (non-blocking)
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: req.user!.userId },
+        select: { email: true, firstName: true }
+      });
+
+      if (user && finalReservation) {
+        const eventDate = format(new Date(finalReservation.event.startDate), 'dd. MM. yyyy HH:mm', { locale: cs });
+        emailService.sendReservationConfirmation(
+          user.email,
+          user.firstName,
+          finalReservation.event.title,
+          finalReservation.reservationCode,
+          finalReservation.ticketCount,
+          Number(finalReservation.totalAmount),
+          eventDate,
+          finalReservation.event.location
+        ).catch(err => console.error('Failed to send reservation email:', err));
+      }
+    } catch (emailError) {
+      console.error('Error sending reservation email:', emailError);
+    }
 
     res.status(201).json({
       message: 'Rezervace byla úspěšně vytvořena',
@@ -303,7 +330,20 @@ export const cancelReservation = async (
 
     const reservation = await prisma.reservation.findUnique({
       where: { id },
-      include: { payment: true }
+      include: { 
+        payment: true,
+        event: {
+          select: {
+            title: true
+          }
+        },
+        user: {
+          select: {
+            email: true,
+            firstName: true
+          }
+        }
+      }
     });
 
     if (!reservation) {
@@ -313,6 +353,8 @@ export const cancelReservation = async (
     if (reservation.userId !== req.user.userId && req.user.role !== 'ADMIN') {
       throw new AppError('Nemáte oprávnění zrušit tuto rezervaci', 403);
     }
+
+    const refundAmount = reservation.payment?.status === 'COMPLETED' ? Number(reservation.totalAmount) : undefined;
 
     // Update reservation and return tickets
     await prisma.$transaction(async (tx: any) => {
@@ -340,6 +382,15 @@ export const cancelReservation = async (
         });
       }
     });
+
+    // Send cancellation email (non-blocking)
+    emailService.sendReservationCancellation(
+      reservation.user.email,
+      reservation.user.firstName,
+      reservation.event.title,
+      reservation.reservationCode,
+      refundAmount
+    ).catch(err => console.error('Failed to send cancellation email:', err));
 
     res.json({ message: 'Rezervace byla úspěšně zrušena' });
   } catch (error) {

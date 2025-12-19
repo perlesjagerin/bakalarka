@@ -5,6 +5,7 @@ import prisma from '../config/database';
 import { generateToken } from '../config/jwt';
 import { AppError } from '../middleware/error.middleware';
 import { AuthRequest } from '../middleware/auth.middleware';
+import { emailService } from '../utils/emailService';
 
 // Validation schemas
 const registerSchema = z.object({
@@ -65,6 +66,11 @@ export const register = async (
       email: user.email,
       role: user.role
     });
+
+    // Send welcome email (non-blocking)
+    emailService.sendWelcomeEmail(user.email, user.firstName).catch(err => 
+      console.error('Failed to send welcome email:', err)
+    );
 
     res.status(201).json({
       message: 'Registrace úspěšná',
