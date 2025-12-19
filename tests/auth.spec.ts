@@ -116,17 +116,22 @@ test.describe('Authentication Flow', () => {
     await page.goto('/register');
 
     await page.fill('input#email', `weak.${Date.now()}@example.com`);
-    await page.fill('input#password', '123'); // Weak password
+    await page.fill('input#password', '123'); // Weak password (less than minLength=6)
     await page.fill('input#firstName', 'Test');
     await page.fill('input#lastName', 'User');
+    
+    // Try to submit - HTML5 validation should prevent it
     await page.click('button[type="submit"]');
+    
+    // Wait a moment
+    await page.waitForTimeout(1000);
 
-    // Wait for validation error
-    await page.waitForSelector('text=/heslo musí|password must|minimálně|at least/i', {
-      timeout: 5000,
-    });
-
-    const errorMessage = page.locator('text=/heslo musí|password must|minimálně|at least/i');
-    await expect(errorMessage).toBeVisible();
+    // Check that we're still on the register page (validation prevented submission)
+    expect(page.url()).toContain('/register');
+    
+    // Check HTML5 validation state
+    const passwordInput = page.locator('input#password');
+    const isInvalid = await passwordInput.evaluate((el: HTMLInputElement) => !el.validity.valid);
+    expect(isInvalid).toBe(true);
   });
 });
