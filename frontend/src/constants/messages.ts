@@ -26,6 +26,7 @@ export const ERROR_MESSAGES = {
   CREATE_RESERVATION_ERROR: 'Chyba při vytváření rezervace',
   CANCEL_RESERVATION_ERROR: 'Chyba při rušení rezervace',
   UPDATE_RESERVATION_ERROR: 'Chyba při aktualizaci rezervace',
+  INVALID_RESERVATION: 'Neplatná rezervace',
   
   // Payments
   LOAD_PAYMENT_ERROR: 'Nepodařilo se načíst platbu',
@@ -70,6 +71,7 @@ export const SUCCESS_MESSAGES = {
   
   // Payments
   PAYMENT_SUCCESS: 'Platba byla úspěšná!',
+  PAYMENT_ALREADY_COMPLETED: 'Tato rezervace je již zaplacena',
   
   // Complaints
   COMPLAINT_SUBMITTED: 'Reklamace byla podána',

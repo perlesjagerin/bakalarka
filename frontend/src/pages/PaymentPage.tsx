@@ -4,7 +4,8 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import CheckoutForm from '../components/CheckoutForm.tsx';
 import api from '../lib/axios';
-import toast from 'react-hot-toast';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '../constants/messages';
+import { showErrorToast, showSuccessToast } from '../utils/errorHandling';
 import { CreditCard, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 // Check if Stripe key is configured
@@ -59,7 +60,7 @@ export default function PaymentPage() {
 
       // Pokud je už zaplaceno, přesměruj
       if (resResponse.data.reservation.status === 'CONFIRMED') {
-        toast.success('Tato rezervace je již zaplacena');
+        showSuccessToast(SUCCESS_MESSAGES.PAYMENT_ALREADY_COMPLETED);
         navigate('/reservations');
         return;
       }
@@ -70,9 +71,10 @@ export default function PaymentPage() {
       });
       
       setClientSecret(paymentResponse.data.clientSecret);
-    } catch (error: any) {
-      setError(error.response?.data?.message || 'Chyba při načítání platby');
-      toast.error('Nepodařilo se načíst platbu');
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || ERROR_MESSAGES.LOAD_PAYMENT_ERROR;
+      setError(errorMsg);
+      showErrorToast(error, ERROR_MESSAGES.LOAD_PAYMENT_ERROR);
     } finally {
       setLoading(false);
     }
