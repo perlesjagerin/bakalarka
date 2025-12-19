@@ -5,7 +5,8 @@ import { z } from 'zod';
 import { User, Mail, Calendar, Shield, Edit2, Save, X } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import api from '../lib/axios';
-import toast from 'react-hot-toast';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '../constants/messages';
+import { showErrorToast, showSuccessToast } from '../utils/errorHandling';
 
 const profileSchema = z.object({
   firstName: z.string().min(2, 'Jméno musí mít alespoň 2 znaky'),
@@ -72,7 +73,7 @@ export default function ProfilePage() {
       
       console.log('✅ Backend response:', response.data);
       
-      toast.success('Profil byl aktualizován');
+      showSuccessToast(SUCCESS_MESSAGES.PROFILE_UPDATED);
       
       // Update user in store with response from backend
       if (response.data.user) {
@@ -80,8 +81,8 @@ export default function ProfilePage() {
       }
       
       setIsEditing(false);
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Chyba při aktualizaci profilu');
+    } catch (error) {
+      showErrorToast(error, ERROR_MESSAGES.UPDATE_PROFILE_ERROR);
     }
   };
 
@@ -91,11 +92,11 @@ export default function ProfilePage() {
         currentPassword: data.currentPassword,
         newPassword: data.newPassword,
       });
-      toast.success('Heslo bylo změněno');
+      showSuccessToast(SUCCESS_MESSAGES.PASSWORD_CHANGED);
       resetPassword();
       setIsChangingPassword(false);
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Chyba při změně hesla');
+    } catch (error) {
+      showErrorToast(error, ERROR_MESSAGES.CHANGE_PASSWORD_ERROR);
     }
   };
 

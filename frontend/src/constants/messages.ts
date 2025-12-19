@@ -12,6 +12,7 @@ export const ERROR_MESSAGES = {
   LOGIN_ERROR: 'Chyba při přihlašování',
   REGISTER_ERROR: 'Chyba při registraci',
   UNAUTHORIZED: 'Nemáte oprávnění k této akci',
+  LOGIN_REQUIRED: 'Pro rezervaci se musíte přihlásit',
   
   // Events
   LOAD_EVENTS_ERROR: 'Chyba při načítání akcí',
@@ -45,6 +46,7 @@ export const ERROR_MESSAGES = {
   
   // Profile
   UPDATE_PROFILE_ERROR: 'Chyba při aktualizaci profilu',
+  CHANGE_PASSWORD_ERROR: 'Chyba při změně hesla',
 } as const;
 
 export const SUCCESS_MESSAGES = {
@@ -87,6 +89,7 @@ export const SUCCESS_MESSAGES = {
   
   // Profile
   PROFILE_UPDATED: 'Profil byl úspěšně aktualizován',
+  PASSWORD_CHANGED: 'Heslo bylo změněno',
   
   // Tickets
   TICKET_DOWNLOAD_PLACEHOLDER: 'Stahování vstupenky {code} (placeholder)',
@@ -101,8 +104,7 @@ export const VALIDATION_MESSAGES = {
   RESPONSE_REQUIRED: 'Prosím vyplňte odpověď',
   MIN_DESCRIPTION_LENGTH: 'Popis musí mít alespoň 20 znaků',
   MIN_TITLE_LENGTH: 'Název musí mít alespoň 3 znaky',
-  MIN_TICKET_COUNT: 'Počet vstupenek musí být alespoň 1',
-} as const;
+  MIN_TICKET_COUNT: 'Počet vstupenek musí být alespoň 1',  INVALID_TICKET_COUNT: 'Neplatný počet vstupenek',} as const;
 
 export const CONFIRMATION_MESSAGES = {
   CANCEL_RESERVATION: 'Opravdu chcete zrušit tuto rezervaci?',
