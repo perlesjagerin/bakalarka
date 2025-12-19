@@ -3,8 +3,17 @@ import { testUsers } from './helpers/test-users';
 import { loginUser } from './helpers/auth-helpers';
 
 test.describe('Reservation Flow', () => {
-  // Skip these tests for now - will be fixed during refactoring
-  test.skip('E2E tests for reservations need form field adjustments', () => {});
+  test.beforeEach(async ({ page }) => {
+    // Login as regular user
+    // Note: This requires the user to exist in the database
+  });
+
+  test.skip('Reservation tests - need test data setup', () => {
+    // These tests require:
+    // 1. Existing user account
+    // 2. Existing events in the database
+    // Will be completed when we add proper test data seeding
+  });
 });
 
 test.describe('Reservation Flow', () => {

@@ -1,10 +1,18 @@
 import { test, expect } from '@playwright/test';
-import { testUsers } from './helpers/test-users';
+import { testUsers, testEvent } from './helpers/test-users';
 import { loginUser } from './helpers/auth-helpers';
 
 test.describe('Create Event Flow', () => {
-  // Skip these tests for now - will be fixed during refactoring
-  test.skip('E2E tests for event creation need form field adjustments', () => {});
+  test.beforeEach(async ({ page }) => {
+    // First need to register and login as organizer
+    // For simplicity, we'll skip login and assume organizer exists
+    // In real scenario, you'd create an organizer account first
+  });
+
+  test.skip('Event creation tests - need organizer setup', () => {
+    // These tests require proper organizer account setup
+    // Will be completed during refactoring when we add proper test data seeding
+  });
 });
 
 test.describe('Create Event Flow', () => {
