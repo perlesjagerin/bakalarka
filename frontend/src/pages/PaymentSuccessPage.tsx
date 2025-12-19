@@ -3,7 +3,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CheckCircle, Download, Calendar, MapPin, Ticket } from 'lucide-react';
 import { getCategoryStyle } from '../utils/eventDefaults';
 import api from '../lib/axios';
-import toast from 'react-hot-toast';
+import { ERROR_MESSAGES } from '../constants/messages';
+import { showErrorToast } from '../utils/errorHandling';
 
 interface Reservation {
   id: string;
@@ -39,7 +40,7 @@ export default function PaymentSuccessPage() {
 
   useEffect(() => {
     if (!reservationId) {
-      toast.error('Neplatná rezervace');
+      showErrorToast(ERROR_MESSAGES.INVALID_RESERVATION);
       navigate('/reservations');
       return;
     }
@@ -52,7 +53,7 @@ export default function PaymentSuccessPage() {
       const response = await api.get(`/reservations/${reservationId}`);
       setReservation(response.data.reservation);
     } catch (error) {
-      toast.error('Nepodařilo se načíst rezervaci');
+      showErrorToast(error, ERROR_MESSAGES.LOAD_RESERVATIONS_ERROR);
       navigate('/reservations');
     } finally {
       setLoading(false);

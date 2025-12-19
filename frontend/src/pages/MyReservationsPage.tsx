@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 
 import ReservationCard from '../components/ReservationCard';
 import api from '../lib/axios';
-import toast from 'react-hot-toast';
+import { SUCCESS_MESSAGES, ERROR_MESSAGES, CONFIRMATION_MESSAGES, formatMessage } from '../constants/messages';
+import { showErrorToast, showSuccessToast } from '../utils/errorHandling';
 
 interface Reservation {
   id: string;
@@ -49,29 +50,30 @@ export default function MyReservationsPage() {
       const response = await api.get('/reservations/my');
       setReservations(response.data.reservations);
     } catch (error) {
-      toast.error('Nepodařilo se načíst rezervace');
+      showErrorToast(error, ERROR_MESSAGES.LOAD_RESERVATIONS_ERROR);
     } finally {
       setLoading(false);
     }
   };
 
   const handleCancelReservation = async (reservationId: string) => {
-    if (!confirm('Opravdu chcete zrušit tuto rezervaci?')) {
+    if (!confirm(CONFIRMATION_MESSAGES.CANCEL_RESERVATION)) {
       return;
     }
 
     try {
       await api.delete(`/reservations/${reservationId}`);
-      toast.success('Rezervace byla zrušena');
+      showSuccessToast(SUCCESS_MESSAGES.RESERVATION_CANCELLED);
       fetchReservations();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Chyba při rušení rezervace');
+    } catch (error) {
+      showErrorToast(error, ERROR_MESSAGES.CANCEL_RESERVATION_ERROR);
     }
   };
 
   const downloadTicket = (reservation: Reservation) => {
     // TODO: Implementovat generování PDF vstupenky s QR kódem
-    toast.success(`Stahování vstupenky ${reservation.reservationCode} (placeholder)`);
+    const message = formatMessage(SUCCESS_MESSAGES.TICKET_DOWNLOAD_PLACEHOLDER, { code: reservation.reservationCode });
+    showSuccessToast(message);
   };
 
   const handleEditReservation = (reservation: Reservation) => {
@@ -81,7 +83,7 @@ export default function MyReservationsPage() {
 
   const handleUpdateReservation = async (reservationId: string) => {
     if (newTicketCount < 1) {
-      toast.error('Počet vstupenek musí být alespoň 1');
+      showErrorToast(VALIDATION_MESSAGES.MIN_TICKET_COUNT);
       return;
     }
     
@@ -89,11 +91,11 @@ export default function MyReservationsPage() {
       await api.put(`/reservations/${reservationId}`, {
         ticketCount: newTicketCount
       });
-      toast.success('Počet vstupenek byl aktualizován');
+      showSuccessToast(SUCCESS_MESSAGES.RESERVATION_UPDATED);
       setEditingReservationId(null);
       fetchReservations();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Chyba při úpravě rezervace');
+    } catch (error) {
+      showErrorToast(error, ERROR_MESSAGES.UPDATE_RESERVATION_ERROR);
     }
   };
 
@@ -209,7 +211,7 @@ export default function MyReservationsPage() {
           )}
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-4" data-testid="reservations-list">
           {filteredReservations.map((reservation) => (
             <ReservationCard
               key={reservation.id}

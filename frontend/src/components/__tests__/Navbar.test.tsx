@@ -90,7 +90,7 @@ describe('Navbar', () => {
 
     it('renders logout button', () => {
       renderNavbar();
-      expect(screen.getByText('Odhlásit')).toBeInTheDocument();
+      expect(screen.getByText('Odhlásit se')).toBeInTheDocument();
     });
 
     it('renders my reservations link', () => {

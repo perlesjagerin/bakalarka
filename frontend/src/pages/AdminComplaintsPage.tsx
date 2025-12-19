@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Calendar, User, FileText, CheckCircle, XCircle, Clock, MessageSquare } from 'lucide-react';
 import api from '../lib/axios';
-import toast from 'react-hot-toast';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES, VALIDATION_MESSAGES, CONFIRMATION_MESSAGES } from '../constants/messages';
+import { showErrorToast, showSuccessToast } from '../utils/errorHandling';
 
 interface Complaint {
   id: string;
@@ -49,7 +50,7 @@ export default function AdminComplaintsPage() {
       const response = await api.get('/complaints/all');
       setComplaints(response.data.complaints);
     } catch (error) {
-      toast.error('Nepodařilo se načíst reklamace');
+      showErrorToast(error, ERROR_MESSAGES.LOAD_COMPLAINTS_ERROR);
     } finally {
       setLoading(false);
     }
@@ -58,7 +59,7 @@ export default function AdminComplaintsPage() {
   const handleReviewComplaint = async (complaintId: string, status: 'IN_REVIEW' | 'REJECTED') => {
     // Pro IN_REVIEW není potřeba odpověď
     if (status === 'REJECTED' && !adminResponse.trim()) {
-      toast.error('Prosím vyplňte důvod zamítnutí');
+      showErrorToast(VALIDATION_MESSAGES.REJECT_REASON_REQUIRED);
       return;
     }
 
@@ -69,13 +70,13 @@ export default function AdminComplaintsPage() {
         adminResponse: status === 'REJECTED' ? adminResponse : undefined,
       });
       
-      toast.success(status === 'IN_REVIEW' ? 'Reklamace byla přijata k řešení' : 'Reklamace byla zamítnuta');
+      showSuccessToast(status === 'IN_REVIEW' ? SUCCESS_MESSAGES.COMPLAINT_ACCEPTED : SUCCESS_MESSAGES.COMPLAINT_REJECTED);
       setSelectedComplaint(null);
       setAdminResponse('');
       setRefundCheckbox(false);
       fetchComplaints();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Chyba při zpracování reklamace');
+    } catch (error) {
+      showErrorToast(error, ERROR_MESSAGES.UPDATE_COMPLAINT_ERROR);
     } finally {
       setProcessing(false);
     }
@@ -83,7 +84,7 @@ export default function AdminComplaintsPage() {
 
   const handleResolveComplaint = async (complaintId: string) => {
     if (!adminResponse.trim()) {
-      toast.error('Prosím vyplňte odpověď');
+      showErrorToast(VALIDATION_MESSAGES.RESPONSE_REQUIRED);
       return;
     }
 
@@ -94,14 +95,14 @@ export default function AdminComplaintsPage() {
         shouldRefund: refundCheckbox,
       });
       
-      toast.success(refundCheckbox ? 'Reklamace byla vyřešena s refundací' : 'Reklamace byla vyřešena');
+      showSuccessToast(refundCheckbox ? SUCCESS_MESSAGES.COMPLAINT_RESOLVED_WITH_REFUND : SUCCESS_MESSAGES.COMPLAINT_RESOLVED);
       setSelectedComplaint(null);
       setAdminResponse('');
       setRefundCheckbox(false);
       setIsEditing(false);
       fetchComplaints();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Chyba při zpracování reklamace');
+    } catch (error) {
+      showErrorToast(error, ERROR_MESSAGES.UPDATE_COMPLAINT_ERROR);
     } finally {
       setProcessing(false);
     }
@@ -117,13 +118,13 @@ export default function AdminComplaintsPage() {
 
   const handleUpdateComplaint = async (complaintId: string) => {
     if (!adminResponse.trim()) {
-      toast.error('Prosím vyplňte odpověď');
+      showErrorToast(VALIDATION_MESSAGES.RESPONSE_REQUIRED);
       return;
     }
 
     // Validace - pokud už byla refundace, nelze měnit status zpět
     if (selectedComplaint?.refundIssued && (editedStatus === 'SUBMITTED' || editedStatus === 'IN_REVIEW')) {
-      toast.error('Reklamace s refundací nemůže být vrácena do řešení. Refundaci nelze vrátit zpět.');
+      showErrorToast(CONFIRMATION_MESSAGES.REFUND_WARNING);
       return;
     }
 
@@ -145,12 +146,12 @@ export default function AdminComplaintsPage() {
           setSelectedComplaint(response.data.complaint);
         }
         
-        toast.success('Reklamace byla aktualizována a refundace provedena');
+        showSuccessToast(SUCCESS_MESSAGES.REFUND_PROCESSED);
         setRefundCheckbox(false);
         setIsEditing(false);
         fetchComplaints();
-      } catch (error: any) {
-        toast.error(error.response?.data?.message || 'Chyba při provedení refundace');
+      } catch (error) {
+        showErrorToast(error, ERROR_MESSAGES.UPDATE_COMPLAINT_ERROR);
       } finally {
         setProcessing(false);
       }
@@ -173,11 +174,11 @@ export default function AdminComplaintsPage() {
         });
       }
       
-      toast.success('Reklamace byla aktualizována');
+      showSuccessToast(SUCCESS_MESSAGES.COMPLAINT_UPDATED);
       setIsEditing(false);
       fetchComplaints();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Chyba při aktualizaci reklamace');
+    } catch (error) {
+      showErrorToast(error, ERROR_MESSAGES.UPDATE_COMPLAINT_ERROR);
     } finally {
       setProcessing(false);
     }

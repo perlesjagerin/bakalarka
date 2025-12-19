@@ -4,8 +4,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../lib/axios';
-import toast from 'react-hot-toast';
+import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '../constants/messages';
+import { showErrorToast, showSuccessToast } from '../utils/errorHandling';
 import { Calendar, MapPin, Users, DollarSign, FileText, Image } from 'lucide-react';
+import { EVENT_CATEGORIES } from '../constants/categories';
 
 const eventSchema = z.object({
   title: z.string().min(3, 'Název musí mít alespoň 3 znaky'),
@@ -23,18 +25,6 @@ const eventSchema = z.object({
 });
 
 type EventFormData = z.infer<typeof eventSchema>;
-
-const categories = [
-  'Hudba',
-  'Divadlo',
-  'Film',
-  'Sport',
-  'Vzdělávání',
-  'Technologie',
-  'Networking',
-  'Party',
-  'Ostatní',
-];
 
 export default function EditEventPage() {
   const { id } = useParams<{ id: string }>();
@@ -69,8 +59,8 @@ export default function EditEventPage() {
         imageUrl: event.imageUrl || '',
         status: event.status,
       });
-    } catch (error: any) {
-      toast.error('Nepodařilo se načíst akci');
+    } catch (error) {
+      showErrorToast(error, ERROR_MESSAGES.LOAD_EVENT_ERROR);
       navigate('/my-events');
     }
   };
@@ -83,26 +73,21 @@ export default function EditEventPage() {
 
   const onSubmit = async (data: EventFormData) => {
     try {
-      // Připravit data
       const eventData: any = {
         ...data,
         startDate: new Date(data.startDate).toISOString(),
         endDate: new Date(data.endDate).toISOString(),
       };
       
-      // Pokud je imageUrl prázdná, poslat prázdný string (backend ji nastaví na null)
       if (!eventData.imageUrl || eventData.imageUrl.trim() === '') {
         eventData.imageUrl = '';
       }
       
       await api.patch(`/events/${id}`, eventData);
-      
-      toast.success('Akce byla aktualizována!');
+      showSuccessToast(SUCCESS_MESSAGES.EVENT_UPDATED);
       navigate('/my-events');
-    } catch (error: any) {
-      console.error('Error updating event:', error);
-      const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message || 'Chyba při aktualizaci akce';
-      toast.error(errorMessage);
+    } catch (error) {
+      showErrorToast(error, ERROR_MESSAGES.UPDATE_EVENT_ERROR);
     }
   };
 
@@ -164,7 +149,7 @@ export default function EditEventPage() {
                 className={`input ${errors.category ? 'border-red-500' : ''}`}
               >
                 <option value="">Vyberte kategorii</option>
-                {categories.map((cat) => (
+                {EVENT_CATEGORIES.map((cat) => (
                   <option key={cat} value={cat}>
                     {cat}
                   </option>

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import toast from 'react-hot-toast';
+import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '../constants/messages';
+import { showErrorToast, showSuccessToast } from '../utils/errorHandling';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -22,12 +23,10 @@ export default function RegisterPage() {
 
     try {
       await register(formData);
-      toast.success('Úspěšně zaregistrován!');
+      showSuccessToast(SUCCESS_MESSAGES.REGISTER_SUCCESS);
       navigate('/');
-    } catch (error: any) {
-      console.error('Register error:', error);
-      const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message || 'Chyba při registraci';
-      toast.error(errorMessage);
+    } catch (error) {
+      showErrorToast(error, ERROR_MESSAGES.REGISTER_ERROR);
     } finally {
       setIsLoading(false);
     }

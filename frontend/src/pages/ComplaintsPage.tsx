@@ -5,12 +5,13 @@ import { z } from 'zod';
 import { useSearchParams } from 'react-router-dom';
 import { AlertCircle, FileText, MessageSquare, CheckCircle, XCircle, Clock } from 'lucide-react';
 import api from '../lib/axios';
-import toast from 'react-hot-toast';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES, VALIDATION_MESSAGES } from '../constants/messages';
+import { showErrorToast, showSuccessToast } from '../utils/errorHandling';
 
 const complaintSchema = z.object({
-  reservationId: z.string().min(1, 'Vyberte rezervaci'),
-  reason: z.string().min(1, 'Vyberte důvod reklamace'),
-  description: z.string().min(20, 'Popis musí mít alespoň 20 znaků'),
+  reservationId: z.string().min(1, VALIDATION_MESSAGES.REQUIRED_FIELD),
+  reason: z.string().min(1, VALIDATION_MESSAGES.REQUIRED_FIELD),
+  description: z.string().min(20, VALIDATION_MESSAGES.MIN_DESCRIPTION_LENGTH),
 });
 
 type ComplaintFormData = z.infer<typeof complaintSchema>;
@@ -99,7 +100,7 @@ export default function ComplaintsPage() {
       setReservations(confirmedReservations);
       setComplaints(compResponse.data.complaints);
     } catch (error) {
-      toast.error('Nepodařilo se načíst data');
+      showErrorToast(error, ERROR_MESSAGES.LOAD_DATA_ERROR);
     } finally {
       setLoading(false);
     }
@@ -108,12 +109,12 @@ export default function ComplaintsPage() {
   const onSubmit = async (data: ComplaintFormData) => {
     try {
       await api.post('/complaints', data);
-      toast.success('Reklamace byla podána');
+      showSuccessToast(SUCCESS_MESSAGES.COMPLAINT_SUBMITTED);
       reset();
       setShowForm(false);
       fetchData();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Chyba při podání reklamace');
+    } catch (error) {
+      showErrorToast(error, ERROR_MESSAGES.CREATE_COMPLAINT_ERROR);
     }
   };
 

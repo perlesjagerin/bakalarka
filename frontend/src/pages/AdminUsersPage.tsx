@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Users, Mail, Calendar, Shield, Trash2, CheckCircle } from 'lucide-react';
 import api from '../lib/axios';
-import toast from 'react-hot-toast';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES, CONFIRMATION_MESSAGES } from '../constants/messages';
+import { showErrorToast, showSuccessToast } from '../utils/errorHandling';
 
 interface User {
   id: string;
@@ -27,7 +28,7 @@ export default function AdminUsersPage() {
       const response = await api.get('/users');
       setUsers(response.data.users || []);
     } catch (error) {
-      toast.error('Nepodařilo se načíst uživatele');
+      showErrorToast(error, ERROR_MESSAGES.LOAD_USERS_ERROR);
     } finally {
       setLoading(false);
     }
@@ -44,7 +45,7 @@ export default function AdminUsersPage() {
     try {
       const response = await api.delete(`/users/${userId}`);
       console.log('Frontend - Backend response:', response.data);
-      toast.success(response.data.message);
+      showSuccessToast(response.data.message);
       // Update user in list with new status using functional update
       setUsers(prevUsers => {
         const updated = prevUsers.map(u => 
@@ -53,8 +54,8 @@ export default function AdminUsersPage() {
         console.log('Frontend - Updated user in list, new isActive:', response.data.isActive);
         return updated;
       });
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || `Chyba při ${action} uživatele`);
+    } catch (error) {
+      showErrorToast(error, ERROR_MESSAGES.UPDATE_USER_ERROR);
     }
   };
 

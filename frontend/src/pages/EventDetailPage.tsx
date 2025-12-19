@@ -4,7 +4,8 @@ import { Calendar, MapPin, Users, Clock, Tag } from 'lucide-react';
 import { getCategoryStyle } from '../utils/eventDefaults';
 import api from '../lib/axios';
 import { useAuthStore } from '../store/authStore';
-import toast from 'react-hot-toast';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES, VALIDATION_MESSAGES } from '../constants/messages';
+import { showErrorToast, showSuccessToast } from '../utils/errorHandling';
 
 interface Event {
   id: string;
@@ -46,7 +47,7 @@ export default function EventDetailPage() {
       const response = await api.get(`/events/${id}`);
       setEvent(response.data.event);
     } catch (error) {
-      toast.error('Nepodařilo se načíst detail akce');
+      showErrorToast(error, ERROR_MESSAGES.LOAD_EVENT_ERROR);
       navigate('/events');
     } finally {
       setLoading(false);
@@ -55,13 +56,13 @@ export default function EventDetailPage() {
 
   const handleReservation = async () => {
     if (!isAuthenticated) {
-      toast.error('Pro rezervaci se musíte přihlásit');
+      showErrorToast(ERROR_MESSAGES.LOGIN_REQUIRED);
       navigate('/login');
       return;
     }
 
     if (ticketCount < 1 || ticketCount > (event?.availableTickets || 0)) {
-      toast.error('Neplatný počet vstupenek');
+      showErrorToast(VALIDATION_MESSAGES.INVALID_TICKET_COUNT);
       return;
     }
 
@@ -74,7 +75,7 @@ export default function EventDetailPage() {
       });
       console.log('Reservation created:', response.data);
       
-      toast.success('Rezervace byla vytvořena!');
+      showSuccessToast(SUCCESS_MESSAGES.RESERVATION_CREATED);
       
       // Pokud je akce zdarma, přesměruj na rezervace, jinak na platbu
       if (Number(event?.ticketPrice) === 0 || response.data.reservation.totalAmount === 0) {
@@ -82,11 +83,9 @@ export default function EventDetailPage() {
       } else {
         navigate(`/reservations/${response.data.reservation.id}/payment`);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error creating reservation:', error);
-      console.error('Error response:', error.response?.data);
-      const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message || 'Chyba při vytváření rezervace';
-      toast.error(errorMessage);
+      showErrorToast(error, ERROR_MESSAGES.CREATE_RESERVATION_ERROR);
     } finally {
       setReserving(false);
     }
@@ -320,6 +319,7 @@ export default function EventDetailPage() {
                   onClick={handleReservation}
                   disabled={reserving}
                   className="btn-primary w-full py-3 text-lg"
+                  data-testid="reserve-button"
                 >
                   {reserving ? 'Vytvářím rezervaci...' : 'Rezervovat vstupenky'}
                 </button>

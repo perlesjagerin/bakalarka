@@ -57,6 +57,7 @@ export default function Navbar() {
                   <Link
                     to="/my-events"
                     className="text-gray-700 hover:text-primary-600 font-medium flex items-center space-x-1"
+                    data-testid="my-events-link"
                   >
                     <FileText size={18} />
                     <span>{user?.role === 'ADMIN' ? 'Správa akcí' : 'Moje akce'}</span>
@@ -73,10 +74,11 @@ export default function Navbar() {
                   </Link>
                 )}
 
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-3" data-testid="user-menu">
                   <Link
                     to="/profile"
                     className="text-gray-700 hover:text-primary-600 font-medium flex items-center space-x-1"
+                    data-testid="profile-link"
                   >
                     <User size={18} />
                     <span>{user?.firstName}</span>
@@ -84,9 +86,10 @@ export default function Navbar() {
                   <button
                     onClick={handleLogout}
                     className="text-gray-700 hover:text-red-600 font-medium flex items-center space-x-1"
+                    data-testid="logout-button"
                   >
                     <LogOut size={18} />
-                    <span>Odhlásit</span>
+                    <span>Odhlásit se</span>
                   </button>
                 </div>
               </>
