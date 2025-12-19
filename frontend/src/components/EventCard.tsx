@@ -29,7 +29,7 @@ export default function EventCard({ event }: EventCardProps) {
   const categoryStyle = getCategoryStyle(event.category);
   
   return (
-    <Link to={`/events/${event.id}`} className="card hover:shadow-xl transition-shadow">
+    <Link to={`/events/${event.id}`} className="card hover:shadow-xl transition-shadow" data-testid="event-card">
       {event.imageUrl && !imageError ? (
         <img
           src={event.imageUrl}

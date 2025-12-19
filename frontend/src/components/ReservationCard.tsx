@@ -248,6 +248,7 @@ export default function ReservationCard({
                   <button
                     onClick={() => onCancel(reservation.id)}
                     className="btn-danger text-sm flex items-center gap-1"
+                    data-testid="cancel-reservation"
                   >
                     <X size={16} />
                     Zrušit rezervaci

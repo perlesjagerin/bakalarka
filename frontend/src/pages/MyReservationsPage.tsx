@@ -209,7 +209,7 @@ export default function MyReservationsPage() {
           )}
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-4" data-testid="reservations-list">
           {filteredReservations.map((reservation) => (
             <ReservationCard
               key={reservation.id}

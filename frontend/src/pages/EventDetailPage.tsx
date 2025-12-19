@@ -320,6 +320,7 @@ export default function EventDetailPage() {
                   onClick={handleReservation}
                   disabled={reserving}
                   className="btn-primary w-full py-3 text-lg"
+                  data-testid="reserve-button"
                 >
                   {reserving ? 'Vytvářím rezervaci...' : 'Rezervovat vstupenky'}
                 </button>
