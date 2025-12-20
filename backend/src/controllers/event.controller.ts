@@ -1,8 +1,8 @@
 import { Response, NextFunction } from 'express';
 import { z } from 'zod';
-import prisma from '../config/database';
 import { AppError } from '../middleware/error.middleware';
 import { AuthRequest } from '../middleware/auth.middleware';
+import { eventService } from '../services/event.service';
 
 const createEventSchema = z.object({
   title: z.string().min(1, 'Název je povinný'),
@@ -31,31 +31,18 @@ export const createEvent = async (
 
     const data = createEventSchema.parse(req.body);
 
-    const event = await prisma.event.create({
-      data: {
-        title: data.title,
-        description: data.description,
-        location: data.location,
-        startDate: new Date(data.startDate),
-        endDate: new Date(data.endDate),
-        category: data.category,
-        totalTickets: data.totalTickets,
-        availableTickets: data.totalTickets,
-        ticketPrice: data.ticketPrice,
-        imageUrl: data.imageUrl,
-        status: data.status || 'DRAFT',
-        organizerId: req.user.userId
-      },
-      include: {
-        organizer: {
-          select: {
-            id: true,
-            email: true,
-            firstName: true,
-            lastName: true
-          }
-        }
-      }
+    const event = await eventService.createEvent({
+      title: data.title,
+      description: data.description,
+      location: data.location,
+      startDate: new Date(data.startDate),
+      endDate: new Date(data.endDate),
+      category: data.category,
+      totalTickets: data.totalTickets,
+      ticketPrice: data.ticketPrice,
+      imageUrl: data.imageUrl,
+      status: data.status,
+      organizerId: req.user.userId
     });
 
     res.status(201).json({
@@ -78,39 +65,11 @@ export const getAllEvents = async (
   try {
     const { category, startDate, endDate, search } = req.query;
 
-    const where: any = { status: 'PUBLISHED' };
-
-    if (category) {
-      where.category = category as string;
-    }
-
-    if (startDate) {
-      where.startDate = { gte: new Date(startDate as string) };
-    }
-
-    if (endDate) {
-      where.endDate = { lte: new Date(endDate as string) };
-    }
-
-    if (search) {
-      where.OR = [
-        { title: { contains: search as string, mode: 'insensitive' } },
-        { description: { contains: search as string, mode: 'insensitive' } }
-      ];
-    }
-
-    const events = await prisma.event.findMany({
-      where,
-      include: {
-        organizer: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true
-          }
-        }
-      },
-      orderBy: { startDate: 'asc' }
+    const events = await eventService.getAllEvents({
+      category: category as string | undefined,
+      startDate: startDate as string | undefined,
+      endDate: endDate as string | undefined,
+      search: search as string | undefined
     });
 
     res.json({ events, count: events.length });
@@ -126,35 +85,8 @@ export const getEventById = async (
 ) => {
   try {
     const { id } = req.params;
-
-    const event = await prisma.event.findUnique({
-      where: { id },
-      include: {
-        organizer: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true
-          }
-        }
-      }
-    });
-
-    if (!event) {
-      throw new AppError('Akce nebyla nalezena', 404);
-    }
-
-    // Add name field to organizer
-    const eventWithOrganizerName = {
-      ...event,
-      organizer: event.organizer ? {
-        ...event.organizer,
-        name: `${event.organizer.firstName} ${event.organizer.lastName}`
-      } : null
-    };
-
-    res.json({ event: eventWithOrganizerName });
+    const event = await eventService.getEventById(id);
+    res.json({ event });
   } catch (error) {
     next(error);
   }
@@ -173,20 +105,7 @@ export const updateEvent = async (
     const { id } = req.params;
     const data = createEventSchema.partial().parse(req.body);
 
-    // Check if event exists and user is the organizer
-    const event = await prisma.event.findUnique({
-      where: { id }
-    });
-
-    if (!event) {
-      throw new AppError('Akce nebyla nalezena', 404);
-    }
-
-    if (event.organizerId !== req.user.userId && req.user.role !== 'ADMIN') {
-      throw new AppError('Nemáte oprávnění upravovat tuto akci', 403);
-    }
-
-    // Připravit data pro update - pokud imageUrl není poslaná nebo je prázdná, nastavit na null
+    // Připravit data pro update
     const updateData: any = {
       ...data,
       startDate: data.startDate ? new Date(data.startDate) : undefined,
@@ -199,19 +118,12 @@ export const updateEvent = async (
       updateData.imageUrl = data.imageUrl || null;
     }
 
-    const updatedEvent = await prisma.event.update({
-      where: { id },
-      data: updateData,
-      include: {
-        organizer: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true
-          }
-        }
-      }
-    });
+    const updatedEvent = await eventService.updateEvent(
+      id,
+      req.user.userId,
+      req.user.role,
+      updateData
+    );
 
     res.json({
       message: 'Akce byla úspěšně aktualizována',
@@ -237,22 +149,7 @@ export const deleteEvent = async (
 
     const { id } = req.params;
 
-    const event = await prisma.event.findUnique({
-      where: { id }
-    });
-
-    if (!event) {
-      throw new AppError('Akce nebyla nalezena', 404);
-    }
-
-    if (event.organizerId !== req.user.userId && req.user.role !== 'ADMIN') {
-      throw new AppError('Nemáte oprávnění smazat tuto akci', 403);
-    }
-
-    await prisma.event.update({
-      where: { id },
-      data: { status: 'CANCELLED' }
-    });
+    await eventService.deleteEvent(id, req.user.userId, req.user.role);
 
     res.json({ message: 'Akce byla úspěšně zrušena' });
   } catch (error) {
@@ -270,28 +167,7 @@ export const getMyEvents = async (
       throw new AppError('Uživatel není autentizován', 401);
     }
 
-    // Admin vidí všechny akce, organizátor jen své
-    const where = req.user.role === 'ADMIN' 
-      ? {} 
-      : { organizerId: req.user.userId };
-
-    const events = await prisma.event.findMany({
-      where,
-      include: {
-        organizer: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true
-          }
-        },
-        _count: {
-          select: { reservations: true }
-        }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+    const events = await eventService.getMyEvents(req.user.userId, req.user.role);
 
     res.json({ events, count: events.length });
   } catch (error) {
