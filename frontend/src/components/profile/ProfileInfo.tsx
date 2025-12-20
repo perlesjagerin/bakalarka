@@ -4,8 +4,8 @@ import { formatDateLong } from '../../utils/formatters';
 
 interface ProfileInfoProps {
   user: {
-    firstName: string;
-    lastName: string;
+    firstName?: string;
+    lastName?: string;
     email: string;
     role: string;
     createdAt: string;

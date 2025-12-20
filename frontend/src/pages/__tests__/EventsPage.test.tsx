@@ -8,7 +8,7 @@ let mockAxiosGet: ReturnType<typeof vi.fn>;
 
 vi.mock('../../lib/axios', () => ({
   default: {
-    get: (...args: any[]) => mockAxiosGet(...args)
+    get: vi.fn()
   }
 }));
 
@@ -57,13 +57,15 @@ const renderEventsPage = () => {
 };
 
 describe('EventsPage', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
-    mockAxiosGet = vi.fn(() => Promise.resolve({
+    const api = (await import('../../lib/axios')).default;
+    mockAxiosGet = vi.mocked(api.get);
+    mockAxiosGet.mockResolvedValue({
       data: {
         events: mockEventsData
       }
-    }));
+    } as any);
   });
 
   it('renders page title', async () => {
