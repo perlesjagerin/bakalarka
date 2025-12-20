@@ -120,13 +120,27 @@ class ReservationService {
         }
       });
 
+      // Pro akce zdarma vytvoříme i payment záznam se statusem COMPLETED
+      if (totalAmount === 0) {
+        await tx.payment.create({
+          data: {
+            reservationId: newReservation.id,
+            amount: 0,
+            status: 'COMPLETED',
+            paymentMethod: 'FREE'
+          }
+        });
+      }
+
       return newReservation;
     });
 
     console.log(`✅ Vytvořena rezervace ${totalAmount === 0 ? 'zdarma' : ''}: ${reservation.id}, status: ${reservation.status}`);
 
-    // Send confirmation emails
-    await this.sendReservationConfirmationEmails(reservation);
+    // Send confirmation emails (non-blocking)
+    this.sendReservationConfirmationEmails(reservation).catch(error => {
+      console.error('Failed to send reservation confirmation emails:', error);
+    });
 
     return reservation;
   }
@@ -291,14 +305,16 @@ class ReservationService {
       return updated;
     });
 
-    // Send cancellation email
-    await emailService.sendReservationCancellation(
+    // Send cancellation email (non-blocking)
+    emailService.sendReservationCancellation(
       cancelledReservation.user.email,
       cancelledReservation.user.firstName,
       cancelledReservation.event.title,
       cancelledReservation.reservationCode,
       shouldRefund ? refundAmount : undefined
-    );
+    ).catch(error => {
+      console.error('Failed to send cancellation email:', error);
+    });
 
     return cancelledReservation;
   }

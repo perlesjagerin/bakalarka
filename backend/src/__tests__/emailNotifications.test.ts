@@ -336,8 +336,8 @@ describe('Email Notifications Integration Tests', () => {
         expect(res.status).toBe(201);
       });
 
-      // Verify email was called for each reservation
-      expect(emailService.sendReservationConfirmation).toHaveBeenCalledTimes(5);
+      // Verify email was called for each reservation (2x per reservation: user + organizer)
+      expect(emailService.sendReservationConfirmation).toHaveBeenCalledTimes(10);
 
       // Cleanup
       const reservationIds = results.map(r => r.body.reservation.id);
