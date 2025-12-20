@@ -1,11 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import bcrypt from 'bcryptjs';
 import { z } from 'zod';
-import prisma from '../config/database';
-import { generateToken } from '../config/jwt';
 import { AppError } from '../middleware/error.middleware';
 import { AuthRequest } from '../middleware/auth.middleware';
-import { emailService } from '../utils/emailService';
+import { authService } from '../services/auth.service';
 
 // Validation schemas
 const registerSchema = z.object({
@@ -28,57 +25,11 @@ export const register = async (
 ) => {
   try {
     const data = registerSchema.parse(req.body);
-
-    // Check if user exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email: data.email }
-    });
-
-    if (existingUser) {
-      throw new AppError('Uživatel s tímto emailem již existuje', 400);
-    }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(data.password, 10);
-
-    // Create user
-    const user = await prisma.user.create({
-      data: {
-        email: data.email,
-        password: hashedPassword,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        role: data.role || 'USER'
-      },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-        createdAt: true
-      }
-    });
-
-    // Generate token
-    const token = generateToken({
-      userId: user.id,
-      email: user.email,
-      role: user.role
-    });
-
-    // Send welcome email (non-blocking)
-    emailService.sendWelcomeEmail(user.email, user.firstName).catch(err => 
-      console.error('Failed to send welcome email:', err)
-    );
+    const result = await authService.register(data);
 
     res.status(201).json({
       message: 'Registrace úspěšná',
-      user: {
-        ...user,
-        name: `${user.firstName} ${user.lastName}`
-      },
-      token
+      ...result
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -95,41 +46,11 @@ export const login = async (
 ) => {
   try {
     const data = loginSchema.parse(req.body);
-
-    // Find user
-    const user = await prisma.user.findUnique({
-      where: { email: data.email }
-    });
-
-    if (!user || !user.isActive) {
-      throw new AppError('Neplatné přihlašovací údaje', 401);
-    }
-
-    // Verify password
-    const isValidPassword = await bcrypt.compare(data.password, user.password);
-
-    if (!isValidPassword) {
-      throw new AppError('Neplatné přihlašovací údaje', 401);
-    }
-
-    // Generate token
-    const token = generateToken({
-      userId: user.id,
-      email: user.email,
-      role: user.role
-    });
+    const result = await authService.login(data);
 
     res.json({
       message: 'Přihlášení úspěšné',
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        name: `${user.firstName} ${user.lastName}`,
-        role: user.role
-      },
-      token
+      ...result
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -149,28 +70,9 @@ export const getCurrentUser = async (
       throw new AppError('Uživatel není autentizován', 401);
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: req.user.userId },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-        createdAt: true
-      }
-    });
+    const user = await authService.getCurrentUser(req.user.userId);
 
-    if (!user) {
-      throw new AppError('Uživatel nenalezen', 404);
-    }
-
-    res.json({ 
-      user: {
-        ...user,
-        name: `${user.firstName} ${user.lastName}`
-      }
-    });
+    res.json({ user });
   } catch (error) {
     next(error);
   }
