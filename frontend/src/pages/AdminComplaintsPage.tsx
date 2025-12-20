@@ -5,7 +5,6 @@ import ComplaintCard from '../components/admin/ComplaintCard';
 import ComplaintStats from '../components/admin/ComplaintStats';
 import ComplaintFilters from '../components/admin/ComplaintFilters';
 import ComplaintDetail from '../components/admin/ComplaintDetail';
-import StatusBadge from '../components/common/StatusBadge';
 import EmptyState from '../components/common/EmptyState';
 import { FileX } from 'lucide-react';
 
@@ -78,10 +77,6 @@ export default function AdminComplaintsPage() {
       });
     }
   };
-
-  const filteredComplaints = filter === 'all' 
-    ? complaints 
-    : complaints.filter(c => c.status === filter);
 
   const filteredComplaints = filter === 'all' ? complaints : complaints.filter((c) => c.status === filter);
 

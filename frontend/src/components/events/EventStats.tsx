@@ -1,3 +1,5 @@
+import { formatPriceStrict } from '../../utils/formatters';
+
 interface Event {
   id: string;
   status: 'DRAFT' | 'PUBLISHED' | 'CANCELLED' | 'COMPLETED';

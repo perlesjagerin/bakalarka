@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Calendar, MapPin, Ticket, Download } from 'lucide-react';
 import { getCategoryStyle } from '../../utils/eventDefaults';
+import { formatDateLong, formatDateTime, formatPrice } from '../../utils/formatters';
 
 interface Reservation {
   id: string;

@@ -1,5 +1,6 @@
 import { CheckCircle, XCircle, MessageSquare } from 'lucide-react';
 import { Complaint } from '../../types/complaint';
+import { formatPrice } from '../../utils/formatters';
 
 interface ComplaintDetailActionsProps {
   complaint: Complaint;
@@ -17,7 +18,7 @@ interface ComplaintDetailActionsProps {
   onUpdateComplaint: (complaintId: string) => void;
 }
 
-export default function ComplaintDetailActions({
+function ComplaintDetailActions({
   complaint,
   adminResponse,
   refundCheckbox,
@@ -238,3 +239,5 @@ export default function ComplaintDetailActions({
     </div>
   );
 }
+
+export default ComplaintDetailActions;

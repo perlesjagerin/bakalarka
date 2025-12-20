@@ -6,7 +6,6 @@ import EventStats from '../components/events/EventStats.tsx';
 import EventFilters from '../components/events/EventFilters.tsx';
 import { useMyEvents } from '../hooks/useMyEvents';
 import { useAuthStore } from '../store/authStore';
-import StatusBadge from '../components/common/StatusBadge';
 import EmptyState from '../components/common/EmptyState';
 
 

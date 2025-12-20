@@ -5,7 +5,6 @@ import ReservationCard from '../components/ReservationCard';
 import ReservationStats from '../components/reservations/ReservationStats.tsx';
 import ReservationFilters from '../components/reservations/ReservationFilters.tsx';
 import { useMyReservations } from '../hooks/useMyReservations';
-import StatusBadge from '../components/common/StatusBadge';
 import EmptyState from '../components/common/EmptyState';
 
 

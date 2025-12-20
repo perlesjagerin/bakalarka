@@ -1,3 +1,5 @@
+import { formatPriceStrict } from '../../utils/formatters';
+
 interface Reservation {
   id: string;
   status: 'PENDING' | 'PAID' | 'CANCELLED' | 'REFUNDED';

@@ -1,3 +1,5 @@
+import { formatDate, formatPrice } from '../../utils/formatters';
+
 interface Reservation {
   reservationCode: string;
   ticketCount: number;
