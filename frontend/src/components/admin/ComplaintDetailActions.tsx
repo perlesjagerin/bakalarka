@@ -1,5 +1,5 @@
 import { CheckCircle, XCircle, MessageSquare } from 'lucide-react';
-import { Complaint } from '../types/complaint';
+import { Complaint } from '../../types/complaint';
 
 interface ComplaintDetailActionsProps {
   complaint: Complaint;

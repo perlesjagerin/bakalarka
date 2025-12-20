@@ -1,5 +1,5 @@
 import { Clock } from 'lucide-react';
-import { Complaint } from '../types/complaint';
+import { Complaint } from '../../types/complaint';
 import ComplaintDetailInfo from './ComplaintDetailInfo';
 import ComplaintDetailActions from './ComplaintDetailActions';
 

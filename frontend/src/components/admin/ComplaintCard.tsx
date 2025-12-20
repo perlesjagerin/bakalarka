@@ -1,5 +1,5 @@
 import { Calendar, User, FileText } from 'lucide-react';
-import { Complaint } from '../types/complaint';
+import { Complaint } from '../../types/complaint';
 
 interface ComplaintCardProps {
   complaint: Complaint;

@@ -1,4 +1,4 @@
-import { Complaint } from '../types/complaint';
+import { Complaint } from '../../types/complaint';
 
 interface ComplaintDetailInfoProps {
   complaint: Complaint;
