@@ -7,6 +7,7 @@ const prisma = new PrismaClient();
 describe('Complaint Endpoints', () => {
   let userToken: string;
   let adminToken: string;
+  let organizerToken: string;
   let testEventId: string;
   let testReservationId: string;
   let testComplaintId: string;
@@ -34,7 +35,7 @@ describe('Complaint Endpoints', () => {
         lastName: 'Organizer',
         role: 'ORGANIZER'
       });
-    const organizerToken = organizerRes.body.token;
+    organizerToken = organizerRes.body.token;
 
     // Vytvoření admin uživatele
     const bcrypt = require('bcryptjs');
@@ -388,6 +389,58 @@ describe('Complaint Endpoints', () => {
 
       expect(res.status).toBe(200);
       expect(res.body.complaint.id).toBe(testComplaintId);
+    });
+
+    it('should fail to refund a free event (amount = 0)', async () => {
+      // Vytvoříme zdarma akci
+      const freeEventRes = await request(app)
+        .post('/api/events')
+        .set('Authorization', `Bearer ${organizerToken}`)
+        .send({
+          title: 'Free Event for Refund Test',
+          description: 'Test Description',
+          location: 'Test Location',
+          startDate: new Date(Date.now() + 86400000).toISOString(),
+          endDate: new Date(Date.now() + 90000000).toISOString(),
+          category: 'Vzdělávání',
+          totalTickets: 50,
+          ticketPrice: 0, // ZDARMA
+          status: 'PUBLISHED'
+        });
+
+      // Vytvoříme rezervaci na zdarma akci
+      const freeReservationRes = await request(app)
+        .post('/api/reservations')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          eventId: freeEventRes.body.event.id,
+          ticketCount: 2
+        });
+
+      expect(freeReservationRes.body.reservation.status).toBe('CONFIRMED');
+      expect(Number(freeReservationRes.body.reservation.totalAmount)).toBe(0);
+
+      // Vytvoříme reklamaci
+      const freeComplaintRes = await request(app)
+        .post('/api/complaints')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          reservationId: freeReservationRes.body.reservation.id,
+          reason: 'Cannot attend',
+          description: 'I want a refund for this free event'
+        });
+
+      // Pokusíme se schválit refundaci pro akci zdarma - mělo by selhat
+      const res = await request(app)
+        .post(`/api/complaints/${freeComplaintRes.body.complaint.id}/resolve`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          adminResponse: 'Attempting refund for free event',
+          shouldRefund: true
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message || res.body.error).toContain('zdarma');
     });
   });
 });

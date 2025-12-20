@@ -287,6 +287,11 @@ export const resolveComplaint = async (
       if (shouldRefund && complaint.reservation.payment) {
         const payment = complaint.reservation.payment;
         
+        // Kontrola, že akce nebyla zdarma
+        if (Number(payment.amount) === 0) {
+          throw new AppError('Nelze refundovat rezervaci na akci zdarma', 400);
+        }
+        
         // Pokud existuje Stripe payment ID a platba nebyla zdarma, proveď refund
         if (payment.stripePaymentId && Number(payment.amount) > 0) {
           try {

@@ -10,15 +10,7 @@
 - OK - vstupenka byla stažena (placeholder)
 - OK - Email potvrzení je odeslán (po implementaci)
 - OK - text v pdf špatně vygenerován, jsou tam neznámé znaky (opraveno - použití Arial TTF s plnou podporou Unicode)
-
-- jak řešit refundaci zadarmo akcí
-
-Co dál?
-
-• Potvrzení rezervace jsme zaslali na váš e-mail
-• Vstupenku si můžete stáhnout nebo ji najdete v "Moje rezervace"
-• Před akcí vám pošleme připomenutí
-• Vstupenku předložte na akci (QR kód)
+- OK - jak řešit refundaci zadarmo akcí (automaticky - Stripe refund se volá pouze při amount > 0, jinak jen zrušení rezervace)
 
 stripe listen --forward-to localhost:3001/api/payments/webhook
 npm run prisma:seed

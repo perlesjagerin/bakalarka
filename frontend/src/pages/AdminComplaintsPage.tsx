@@ -428,19 +428,28 @@ export default function AdminComplaintsPage() {
                     className="input mb-4"
                   />
 
-                  <div className="mb-6">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={refundCheckbox}
-                        onChange={(e) => setRefundCheckbox(e.target.checked)}
-                        className="w-4 h-4 text-primary-600 rounded focus:ring-2 focus:ring-primary-500"
-                      />
-                      <span className="text-sm">
-                        Provést automatickou refundaci
-                      </span>
-                    </label>
-                  </div>
+                  {/* Refundace checkbox - pouze pro placené akce */}
+                  {Number(selectedComplaint.reservation.totalAmount) > 0 ? (
+                    <div className="mb-6">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={refundCheckbox}
+                          onChange={(e) => setRefundCheckbox(e.target.checked)}
+                          className="w-4 h-4 text-primary-600 rounded focus:ring-2 focus:ring-primary-500"
+                        />
+                        <span className="text-sm">
+                          Provést automatickou refundaci ({Number(selectedComplaint.reservation.totalAmount).toLocaleString('cs-CZ')} Kč)
+                        </span>
+                      </label>
+                    </div>
+                  ) : (
+                    <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-sm text-blue-800">
+                        ℹ️ Tato rezervace byla na akci zdarma - refundace není potřeba.
+                      </p>
+                    </div>
+                  )}
 
                   <div className="flex gap-3">
                     <button
@@ -527,8 +536,8 @@ export default function AdminComplaintsPage() {
                         className="input mb-4"
                       />
 
-                      {/* Refundace checkbox - pouze pokud ještě nebyla provedena */}
-                      {!selectedComplaint.refundIssued && (
+                      {/* Refundace checkbox - pouze pokud ještě nebyla provedena a akce nebyla zdarma */}
+                      {!selectedComplaint.refundIssued && Number(selectedComplaint.reservation.totalAmount) > 0 && (
                         <div className="mb-4">
                           <label className="flex items-center gap-2 cursor-pointer p-3 border rounded-lg hover:bg-gray-50">
                             <input
@@ -538,7 +547,7 @@ export default function AdminComplaintsPage() {
                               className="w-4 h-4 text-primary-600 rounded focus:ring-2 focus:ring-primary-500"
                             />
                             <span className="text-sm font-medium">
-                              Provést refundaci
+                              Provést refundaci ({Number(selectedComplaint.reservation.totalAmount).toLocaleString('cs-CZ')} Kč)
                             </span>
                           </label>
                           {refundCheckbox && (
@@ -546,6 +555,13 @@ export default function AdminComplaintsPage() {
                               ⚠️ Refundace bude provedena okamžitě a nelze ji vrátit zpět!
                             </p>
                           )}
+                        </div>
+                      )}
+                      {!selectedComplaint.refundIssued && Number(selectedComplaint.reservation.totalAmount) === 0 && (
+                        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          <p className="text-sm text-blue-800">
+                            ℹ️ Tato rezervace byla na akci zdarma - refundace není potřeba.
+                          </p>
                         </div>
                       )}
 
