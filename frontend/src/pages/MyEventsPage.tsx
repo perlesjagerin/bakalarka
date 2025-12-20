@@ -1,123 +1,40 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import MyEventCard from '../components/MyEventCard';
-import api from '../lib/axios';
-import { SUCCESS_MESSAGES, ERROR_MESSAGES, CONFIRMATION_MESSAGES } from '../constants/messages';
-import { showErrorToast, showSuccessToast } from '../utils/errorHandling';
+import EventStats from '../components/events/EventStats.tsx';
+import EventFilters from '../components/events/EventFilters.tsx';
+import { useMyEvents } from '../hooks/useMyEvents';
 import { useAuthStore } from '../store/authStore';
 
-interface Event {
-  id: string;
-  title: string;
-  description: string;
-  location: string;
-  startDate: string;
-  endDate: string;
-  category: string;
-  totalTickets: number;
-  availableTickets: number;
-  ticketPrice: number;
-  imageUrl?: string;
-  status: 'DRAFT' | 'PUBLISHED' | 'CANCELLED' | 'COMPLETED';
-  organizer?: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
+type FilterType = 'all' | 'PUBLISHED' | 'DRAFT' | 'COMPLETED' | 'CANCELLED';
+
+const getStatusBadge = (status: string) => {
+  const badges = {
+    DRAFT: 'bg-gray-100 text-gray-800',
+    PUBLISHED: 'bg-green-100 text-green-800',
+    CANCELLED: 'bg-red-100 text-red-800',
+    COMPLETED: 'bg-blue-100 text-blue-800',
   };
-  _count: {
-    reservations: number;
+  const labels = {
+    DRAFT: 'Koncept',
+    PUBLISHED: 'Publikováno',
+    CANCELLED: 'Zrušeno',
+    COMPLETED: 'Proběhlo',
   };
-}
+  return (
+    <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${badges[status as keyof typeof badges]}`}>
+      {labels[status as keyof typeof labels]}
+    </span>
+  );
+};
 
 export default function MyEventsPage() {
   const { user } = useAuthStore();
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'DRAFT' | 'PUBLISHED' | 'CANCELLED' | 'COMPLETED'>('all');
+  const [filter, setFilter] = useState<FilterType>('all');
+  const { events, loading, handleDeleteEvent, handleStatusChange } = useMyEvents();
 
-  useEffect(() => {
-    fetchMyEvents();
-  }, []);
-
-  const fetchMyEvents = async () => {
-    try {
-      const response = await api.get('/events/my');
-      setEvents(response.data.events);
-    } catch (error) {
-      showErrorToast(error, ERROR_MESSAGES.LOAD_EVENTS_ERROR);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteEvent = async (eventId: string) => {
-    if (!confirm(CONFIRMATION_MESSAGES.DELETE_EVENT)) {
-      return;
-    }
-
-    try {
-      await api.delete(`/events/${eventId}`);
-      showSuccessToast(SUCCESS_MESSAGES.EVENT_DELETED);
-      setEvents(events.filter(e => e.id !== eventId));
-    } catch (error) {
-      showErrorToast(error, ERROR_MESSAGES.DELETE_EVENT_ERROR);
-    }
-  };
-
-  const handleStatusChange = async (eventId: string, newStatus: string) => {
-    // Confirm pro kritické změny
-    if (newStatus === 'CANCELLED') {
-      if (!confirm(CONFIRMATION_MESSAGES.CANCEL_EVENT)) {
-        return;
-      }
-    } else if (newStatus === 'PUBLISHED') {
-      if (!confirm(CONFIRMATION_MESSAGES.PUBLISH_EVENT)) {
-        return;
-      }
-    }
-
-    try {
-      await api.patch(`/events/${eventId}`, { status: newStatus });
-      
-      const statusMessages: Record<string, string> = {
-        'PUBLISHED': SUCCESS_MESSAGES.EVENT_PUBLISHED,
-        'CANCELLED': SUCCESS_MESSAGES.EVENT_CANCELLED,
-        'COMPLETED': SUCCESS_MESSAGES.EVENT_COMPLETED,
-        'DRAFT': SUCCESS_MESSAGES.EVENT_DRAFT
-      };
-      
-      showSuccessToast(statusMessages[newStatus] || SUCCESS_MESSAGES.EVENT_STATUS_CHANGED);
-      fetchMyEvents();
-    } catch (error) {
-      showErrorToast(error, ERROR_MESSAGES.UPDATE_EVENT_STATUS_ERROR);
-    }
-  };
-
-  const filteredEvents = filter === 'all' 
-    ? events 
-    : events.filter(e => e.status === filter);
-
-  const getStatusBadge = (status: string) => {
-    const badges = {
-      DRAFT: 'bg-gray-100 text-gray-800',
-      PUBLISHED: 'bg-green-100 text-green-800',
-      CANCELLED: 'bg-red-100 text-red-800',
-      COMPLETED: 'bg-blue-100 text-blue-800',
-    };
-    const labels = {
-      DRAFT: 'Koncept',
-      PUBLISHED: 'Publikováno',
-      CANCELLED: 'Zrušeno',
-      COMPLETED: 'Proběhlo',
-    };
-    return (
-      <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${badges[status as keyof typeof badges]}`}>
-        {labels[status as keyof typeof labels]}
-      </span>
-    );
-  };
+  const filteredEvents = filter === 'all' ? events : events.filter(e => e.status === filter);
 
   if (loading) {
     return (
@@ -131,92 +48,46 @@ export default function MyEventsPage() {
     );
   }
 
-  const stats = {
-    total: events.length,
-    published: events.filter(e => e.status === 'PUBLISHED').length,
-    draft: events.filter(e => e.status === 'DRAFT').length,
-    completed: events.filter(e => e.status === 'COMPLETED').length,
-    cancelled: events.filter(e => e.status === 'CANCELLED').length,
-    totalRevenue: events.reduce((sum, e) => {
-      // Zajistit, že sold je vždy alespoň 0 (může být záporné kvůli refundacím)
-      const sold = Math.max(0, e.totalTickets - e.availableTickets);
-      return sum + (sold * e.ticketPrice);
-    }, 0),
-  };
-
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             {user?.role === 'ADMIN' ? 'Správa všech akcí' : 'Moje akce'}
           </h1>
           <p className="text-gray-600">
-            {user?.role === 'ADMIN' 
-              ? 'Spravujte všechny akce všech organizátorů' 
+            {user?.role === 'ADMIN'
+              ? 'Spravujte všechny akce všech organizátorů'
               : 'Spravujte své události a sledujte prodej vstupenek'}
           </p>
         </div>
-        <Link to="/events/create" className="btn-primary flex items-center gap-2" data-testid="create-event-button">
+        <Link
+          to="/events/create"
+          className="btn-primary flex items-center gap-2"
+          data-testid="create-event-button"
+        >
           <Plus size={20} />
           Vytvořit akci
         </Link>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="card">
-          <p className="text-gray-600 mb-1">Celkem akcí</p>
-          <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
-        </div>
-        <div className="card">
-          <p className="text-gray-600 mb-1">Publikováno</p>
-          <p className="text-3xl font-bold text-green-600">{stats.published}</p>
-        </div>
-        <div className="card">
-          <p className="text-gray-600 mb-1">Koncepty</p>
-          <p className="text-3xl font-bold text-gray-600">{stats.draft}</p>
-        </div>
-        <div className="card">
-          <p className="text-gray-600 mb-1">Proběhlé</p>
-          <p className="text-3xl font-bold text-blue-600">{stats.completed}</p>
-        </div>
-        <div className="card">
-          <p className="text-gray-600 mb-1">Celkový příjem</p>
-          <p className="text-3xl font-bold text-primary-600">{stats.totalRevenue.toLocaleString('cs-CZ')} Kč</p>
-        </div>
-      </div>
+      <EventStats events={events} />
 
-      {/* Filters */}
-      <div className="mb-6 flex gap-2 flex-wrap">
-        {(['all', 'PUBLISHED', 'DRAFT', 'COMPLETED', 'CANCELLED'] as const).map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filter === f
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            {f === 'all' ? 'Vše' : 
-             f === 'PUBLISHED' ? 'Publikováno' :
-             f === 'DRAFT' ? 'Koncepty' :
-             f === 'CANCELLED' ? 'Zrušeno' :
-             'Proběhlo'}
-          </button>
-        ))}
-      </div>
+      <EventFilters filter={filter} setFilter={setFilter} />
 
-      {/* Events list */}
       {filteredEvents.length === 0 ? (
         <div className="card text-center py-12">
           <p className="text-gray-600 mb-4">
-            {filter === 'all' ? 'Zatím jste nevytvořili žádnou akci.' : 'Žádné akce v této kategorii.'}
+            {filter === 'all'
+              ? 'Zatím jste nevytvořili žádnou akci.'
+              : 'Žádné akce v této kategorii.'}
           </p>
           {filter === 'all' && (
-            <Link to="/events/create" className="btn-primary inline-flex items-center gap-2" data-testid="create-first-event-button">
+            <Link
+              to="/events/create"
+              className="btn-primary inline-flex items-center gap-2"
+              data-testid="create-first-event-button"
+            >
               <Plus size={20} />
               Vytvořit první akci
             </Link>

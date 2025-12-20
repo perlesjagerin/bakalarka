@@ -34,7 +34,7 @@ export default function PasswordForm({
         <input
           {...register('currentPassword')}
           type="password"
-          className={\`input \${errors.currentPassword ? 'border-red-500' : ''}\`}
+          className={`input ${errors.currentPassword ? 'border-red-500' : ''}`}
         />
         {errors.currentPassword && (
           <p className="text-red-600 text-sm mt-1">{errors.currentPassword.message}</p>
@@ -48,7 +48,7 @@ export default function PasswordForm({
         <input
           {...register('newPassword')}
           type="password"
-          className={\`input \${errors.newPassword ? 'border-red-500' : ''}\`}
+          className={`input ${errors.newPassword ? 'border-red-500' : ''}`}
         />
         {errors.newPassword && (
           <p className="text-red-600 text-sm mt-1">{errors.newPassword.message}</p>
@@ -62,7 +62,7 @@ export default function PasswordForm({
         <input
           {...register('confirmPassword')}
           type="password"
-          className={\`input \${errors.confirmPassword ? 'border-red-500' : ''}\`}
+          className={`input ${errors.confirmPassword ? 'border-red-500' : ''}`}
         />
         {errors.confirmPassword && (
           <p className="text-red-600 text-sm mt-1">{errors.confirmPassword.message}</p>
