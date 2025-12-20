@@ -260,7 +260,7 @@ class ReservationService {
 
     // Process refund if paid
     let refundAmount = 0;
-    const shouldRefund = reservation.status === 'PAID' && Number(reservation.totalAmount) > 0;
+    const shouldRefund = (reservation.status === 'PAID' as any) && Number(reservation.totalAmount) > 0;
 
     if (shouldRefund && reservation.payment && reservation.payment.stripePaymentId) {
       try {

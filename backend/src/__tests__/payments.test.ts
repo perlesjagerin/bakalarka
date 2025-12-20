@@ -171,7 +171,7 @@ describe('Payment Endpoints', () => {
       // Update reservation status to PAID
       await prisma.reservation.update({
         where: { id: testReservationId },
-        data: { status: 'PAID' }
+        data: { status: 'PAID' as any }
       });
 
       const res = await request(app)

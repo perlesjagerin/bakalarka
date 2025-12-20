@@ -129,13 +129,13 @@ async function main() {
       ticketPrice: 50,
       totalTickets: 40,
       availableTickets: 40,
-      status: 'PUBLISHED',
+      status: 'PUBLISHED' as const,
       organizerId: admin.id,
     },
   ];
 
   for (const eventData of events) {
-    await prisma.event.create({ data: eventData });
+    await prisma.event.create({ data: eventData as any });
   }
 
   console.log(`✅ Vytvořeno ${events.length} akcí`);

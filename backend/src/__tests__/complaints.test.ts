@@ -306,7 +306,7 @@ describe('Complaint Endpoints', () => {
       // Manuálně nastavíme rezervaci jako PAID s platbou
       await prisma.reservation.update({
         where: { id: paidReservationRes.body.reservation.id },
-        data: { status: 'PAID' }
+        data: { status: 'PAID' as any }
       });
 
       const refundComplaintRes = await request(app)

@@ -71,7 +71,7 @@ describe('Ticket Download Endpoints', () => {
         userId,
         ticketCount: 2,
         totalAmount: 1000,
-        status: 'PAID',
+        status: 'PAID' as any,
         reservationCode: 'TEST-PAID-001',
       },
     });
@@ -174,7 +174,7 @@ describe('Ticket Download Endpoints', () => {
           userId: otherUser.id,
           ticketCount: 1,
           totalAmount: 500,
-          status: 'PAID',
+          status: 'PAID' as any,
           reservationCode: 'TEST-OTHER-001',
         },
       });
@@ -231,7 +231,7 @@ describe('Ticket Download Endpoints', () => {
           userId,
           ticketCount: 1,
           totalAmount: 0,
-          status: 'PAID',
+          status: 'PAID' as any,
           reservationCode: 'TEST-FREE-001',
         },
       });

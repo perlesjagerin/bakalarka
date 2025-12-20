@@ -181,7 +181,7 @@ class PaymentService {
         // Update reservation status
         await prisma.reservation.update({
           where: { id: reservationId },
-          data: { status: 'PAID' }
+          data: { status: 'PAID' as any }
         });
 
         // Send payment confirmation email (non-blocking)
