@@ -1,13 +1,12 @@
-import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate, useParams } from 'react-router-dom';
-import api from '../lib/axios';
-import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '../constants/messages';
-import { showErrorToast, showSuccessToast } from '../utils/errorHandling';
-import { Calendar, MapPin, Users, DollarSign, FileText, Image } from 'lucide-react';
-import { EVENT_CATEGORIES } from '../constants/categories';
+import { useEditEvent } from '../hooks/useEditEvent';
+import EventFormBasicInfo from '../components/events/EventFormBasicInfo';
+import EventFormDateTime from '../components/events/EventFormDateTime';
+import EventFormTickets from '../components/events/EventFormTickets';
+import { EventFormData } from '../types/eventForm';
 
 const eventSchema = z.object({
   title: z.string().min(3, 'Název musí mít alespoň 3 znaky'),
@@ -24,11 +23,10 @@ const eventSchema = z.object({
   status: z.enum(['DRAFT', 'PUBLISHED', 'CANCELLED', 'COMPLETED']).optional(),
 });
 
-type EventFormData = z.infer<typeof eventSchema>;
-
 export default function EditEventPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  
   const {
     register,
     handleSubmit,
@@ -38,57 +36,10 @@ export default function EditEventPage() {
     resolver: zodResolver(eventSchema),
   });
 
-  const fetchEvent = async () => {
-    try {
-      const response = await api.get(`/events/${id}`);
-      const event = response.data.event;
-      
-      // Formátování dat pro datetime-local input
-      const startDate = new Date(event.startDate).toISOString().slice(0, 16);
-      const endDate = new Date(event.endDate).toISOString().slice(0, 16);
-      
-      reset({
-        title: event.title,
-        description: event.description,
-        location: event.location,
-        startDate,
-        endDate,
-        category: event.category,
-        totalTickets: event.totalTickets,
-        ticketPrice: event.ticketPrice,
-        imageUrl: event.imageUrl || '',
-        status: event.status,
-      });
-    } catch (error) {
-      showErrorToast(error, ERROR_MESSAGES.LOAD_EVENT_ERROR);
-      navigate('/my-events');
-    }
-  };
-
-  useEffect(() => {
-    if (id) {
-      fetchEvent();
-    }
-  }, [id]);
+  const { updateEvent } = useEditEvent(id, reset);
 
   const onSubmit = async (data: EventFormData) => {
-    try {
-      const eventData: any = {
-        ...data,
-        startDate: new Date(data.startDate).toISOString(),
-        endDate: new Date(data.endDate).toISOString(),
-      };
-      
-      if (!eventData.imageUrl || eventData.imageUrl.trim() === '') {
-        eventData.imageUrl = '';
-      }
-      
-      await api.patch(`/events/${id}`, eventData);
-      showSuccessToast(SUCCESS_MESSAGES.EVENT_UPDATED);
-      navigate('/my-events');
-    } catch (error) {
-      showErrorToast(error, ERROR_MESSAGES.UPDATE_EVENT_ERROR);
-    }
+    await updateEvent(data);
   };
 
   return (
@@ -100,214 +51,23 @@ export default function EditEventPage() {
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Základní informace */}
-          <div className="card">
-            <h2 className="text-xl font-bold mb-4">Základní informace</h2>
-            
-            {/* Název */}
-            <div className="mb-4">
-              <label className="block text-gray-700 font-medium mb-2">
-                Název akce *
-              </label>
-              <div className="relative">
-                <FileText className="absolute left-3 top-3 text-gray-400" size={20} />
-                <input
-                  {...register('title')}
-                  type="text"
-                  placeholder="Např. Letní hudební festival"
-                  className={`input pl-10 ${errors.title ? 'border-red-500' : ''}`}
-                />
-              </div>
-              {errors.title && (
-                <p className="text-red-600 text-sm mt-1">{errors.title.message}</p>
-              )}
-            </div>
+          <EventFormBasicInfo 
+            register={register} 
+            errors={errors}
+            showStatus={true}
+          />
+          
+          <EventFormDateTime 
+            register={register} 
+            errors={errors}
+          />
+          
+          <EventFormTickets 
+            register={register} 
+            errors={errors}
+            showCapacityWarning={true}
+          />
 
-            {/* Popis */}
-            <div className="mb-4">
-              <label className="block text-gray-700 font-medium mb-2">
-                Popis akce *
-              </label>
-              <textarea
-                {...register('description')}
-                rows={5}
-                placeholder="Podrobný popis vaší akce..."
-                className={`input ${errors.description ? 'border-red-500' : ''}`}
-              />
-              {errors.description && (
-                <p className="text-red-600 text-sm mt-1">{errors.description.message}</p>
-              )}
-            </div>
-
-            {/* Kategorie */}
-            <div className="mb-4">
-              <label className="block text-gray-700 font-medium mb-2">
-                Kategorie *
-              </label>
-              <select
-                {...register('category')}
-                className={`input ${errors.category ? 'border-red-500' : ''}`}
-              >
-                <option value="">Vyberte kategorii</option>
-                {EVENT_CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
-              {errors.category && (
-                <p className="text-red-600 text-sm mt-1">{errors.category.message}</p>
-              )}
-            </div>
-
-            {/* Obrázek */}
-            <div className="mb-4">
-              <label className="block text-gray-700 font-medium mb-2">
-                URL obrázku
-              </label>
-              <div className="relative">
-                <Image className="absolute left-3 top-3 text-gray-400" size={20} />
-                <input
-                  {...register('imageUrl')}
-                  type="url"
-                  placeholder="https://example.com/image.jpg"
-                  className={`input pl-10 ${errors.imageUrl ? 'border-red-500' : ''}`}
-                />
-              </div>
-              {errors.imageUrl && (
-                <p className="text-red-600 text-sm mt-1">{errors.imageUrl.message}</p>
-              )}
-            </div>
-
-            {/* Status */}
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">
-                Status akce
-              </label>
-              <select
-                {...register('status')}
-                className="input"
-              >
-                <option value="DRAFT">Koncept</option>
-                <option value="PUBLISHED">Publikováno</option>
-                <option value="CANCELLED">Zrušeno</option>
-                <option value="COMPLETED">Proběhlo</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Datum a místo */}
-          <div className="card">
-            <h2 className="text-xl font-bold mb-4">Datum a místo</h2>
-
-            {/* Datum začátku */}
-            <div className="mb-4">
-              <label className="block text-gray-700 font-medium mb-2">
-                Začátek akce *
-              </label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-3 text-gray-400" size={20} />
-                <input
-                  {...register('startDate')}
-                  type="datetime-local"
-                  className={`input pl-10 ${errors.startDate ? 'border-red-500' : ''}`}
-                />
-              </div>
-              {errors.startDate && (
-                <p className="text-red-600 text-sm mt-1">{errors.startDate.message}</p>
-              )}
-            </div>
-
-            {/* Datum konce */}
-            <div className="mb-4">
-              <label className="block text-gray-700 font-medium mb-2">
-                Konec akce *
-              </label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-3 text-gray-400" size={20} />
-                <input
-                  {...register('endDate')}
-                  type="datetime-local"
-                  className={`input pl-10 ${errors.endDate ? 'border-red-500' : ''}`}
-                />
-              </div>
-              {errors.endDate && (
-                <p className="text-red-600 text-sm mt-1">{errors.endDate.message}</p>
-              )}
-            </div>
-
-            {/* Místo */}
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">
-                Místo konání *
-              </label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-3 text-gray-400" size={20} />
-                <input
-                  {...register('location')}
-                  type="text"
-                  placeholder="Např. Lucerna Music Bar, Praha"
-                  className={`input pl-10 ${errors.location ? 'border-red-500' : ''}`}
-                />
-              </div>
-              {errors.location && (
-                <p className="text-red-600 text-sm mt-1">{errors.location.message}</p>
-              )}
-            </div>
-          </div>
-
-          {/* Vstupenky a cena */}
-          <div className="card">
-            <h2 className="text-xl font-bold mb-4">Vstupenky</h2>
-
-            <div className="grid md:grid-cols-2 gap-4">
-              {/* Kapacita */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">
-                  Celková kapacita *
-                </label>
-                <div className="relative">
-                  <Users className="absolute left-3 top-3 text-gray-400" size={20} />
-                  <input
-                    {...register('totalTickets')}
-                    type="number"
-                    min="1"
-                    placeholder="100"
-                    className={`input pl-10 ${errors.totalTickets ? 'border-red-500' : ''}`}
-                  />
-                </div>
-                {errors.totalTickets && (
-                  <p className="text-red-600 text-sm mt-1">{errors.totalTickets.message}</p>
-                )}
-                <p className="text-sm text-gray-500 mt-1">
-                  Pozor: snížení kapacity může ovlivnit existující rezervace
-                </p>
-              </div>
-
-              {/* Cena */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">
-                  Cena vstupenky (Kč) *
-                </label>
-                <div className="relative">
-                  <DollarSign className="absolute left-3 top-3 text-gray-400" size={20} />
-                  <input
-                    {...register('ticketPrice')}
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="0"
-                    className={`input pl-10 ${errors.ticketPrice ? 'border-red-500' : ''}`}
-                  />
-                </div>
-                {errors.ticketPrice && (
-                  <p className="text-red-600 text-sm mt-1">{errors.ticketPrice.message}</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Tlačítka */}
           <div className="flex gap-4">
             <button
               type="submit"

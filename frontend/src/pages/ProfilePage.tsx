@@ -1,33 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { User, Mail, Calendar, Shield, Edit2, Save, X } from 'lucide-react';
+import { Shield, Edit2 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
-import api from '../lib/axios';
-import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '../constants/messages';
-import { showErrorToast, showSuccessToast } from '../utils/errorHandling';
-
-const profileSchema = z.object({
-  firstName: z.string().min(2, 'Jméno musí mít alespoň 2 znaky'),
-  lastName: z.string().min(2, 'Příjmení musí mít alespoň 2 znaky'),
-  email: z.string().email('Neplatný email'),
-});
-
-const passwordSchema = z.object({
-  currentPassword: z.string().min(6, 'Heslo musí mít alespoň 6 znaků'),
-  newPassword: z.string().min(6, 'Heslo musí mít alespoň 6 znaků'),
-  confirmPassword: z.string().min(6, 'Heslo musí mít alespoň 6 znaků'),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "Hesla se neshodují",
-  path: ["confirmPassword"],
-});
-
-type ProfileFormData = z.infer<typeof profileSchema>;
-type PasswordFormData = z.infer<typeof passwordSchema>;
+import { useProfile } from '../hooks/useProfile';
+import ProfileInfo from '../components/profile/ProfileInfo';
+import ProfileEditForm, { profileSchema, ProfileFormData } from '../components/profile/ProfileEditForm';
+import PasswordForm, { passwordSchema, PasswordFormData } from '../components/profile/PasswordForm';
 
 export default function ProfilePage() {
-  const { user, setUser } = useAuthStore();
+  const { user } = useAuthStore();
+  const { updateProfile, changePassword } = useProfile();
   const [isEditing, setIsEditing] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
@@ -60,43 +43,20 @@ export default function ProfilePage() {
   }, [user, resetProfile]);
 
   const onSubmitProfile = async (data: ProfileFormData) => {
-    try {
-      const payload = {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email
-      };
-      
-      console.log('🚀 Sending to backend:', payload);
-      
-      const response = await api.patch('/users/profile', payload);
-      
-      console.log('✅ Backend response:', response.data);
-      
-      showSuccessToast(SUCCESS_MESSAGES.PROFILE_UPDATED);
-      
-      // Update user in store with response from backend
-      if (response.data.user) {
-        setUser(response.data.user);
-      }
-      
+    const success = await updateProfile(data);
+    if (success) {
       setIsEditing(false);
-    } catch (error) {
-      showErrorToast(error, ERROR_MESSAGES.UPDATE_PROFILE_ERROR);
     }
   };
 
   const onSubmitPassword = async (data: PasswordFormData) => {
-    try {
-      await api.patch('/users/password', {
-        currentPassword: data.currentPassword,
-        newPassword: data.newPassword,
-      });
-      showSuccessToast(SUCCESS_MESSAGES.PASSWORD_CHANGED);
+    const success = await changePassword({
+      currentPassword: data.currentPassword,
+      newPassword: data.newPassword,
+    });
+    if (success) {
       resetPassword();
       setIsChangingPassword(false);
-    } catch (error) {
-      showErrorToast(error, ERROR_MESSAGES.CHANGE_PASSWORD_ERROR);
     }
   };
 
@@ -134,7 +94,7 @@ export default function ProfilePage() {
       <div className="max-w-3xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Můj profil</h1>
 
-        {/* Základní informace */}
+        {/* Osobní údaje */}
         <div className="card mb-6">
           <div className="flex justify-between items-start mb-6">
             <div>
@@ -153,122 +113,19 @@ export default function ProfilePage() {
           </div>
 
           {isEditing ? (
-            <form onSubmit={handleSubmitProfile(onSubmitProfile)} className="space-y-4">
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">
-                  Jméno *
-                </label>
-                <div className="relative">
-                  <User className="absolute left-3 top-3 text-gray-400" size={20} />
-                  <input
-                    {...registerProfile('firstName')}
-                    type="text"
-                    className={`input pl-10 ${profileErrors.firstName ? 'border-red-500' : ''}`}
-                  />
-                </div>
-                {profileErrors.firstName && (
-                  <p className="mt-1 text-sm text-red-600">{profileErrors.firstName.message}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">
-                  Příjmení
-                </label>
-                <div className="relative">
-                  <User className="absolute left-3 top-3 text-gray-400" size={20} />
-                  <input
-                    {...registerProfile('lastName')}
-                    type="text"
-                    className={`input pl-10 ${profileErrors.lastName ? 'border-red-500' : ''}`}
-                  />
-                </div>
-                {profileErrors.lastName && (
-                  <p className="mt-1 text-sm text-red-600">{profileErrors.lastName.message}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">
-                  Email *
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 text-gray-400" size={20} />
-                  <input
-                    {...registerProfile('email')}
-                    type="email"
-                    className={`input pl-10 ${profileErrors.email ? 'border-red-500' : ''}`}
-                  />
-                </div>
-                {profileErrors.email && (
-                  <p className="text-red-600 text-sm mt-1">{profileErrors.email.message}</p>
-                )}
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="submit"
-                  disabled={isSubmittingProfile}
-                  className="btn-primary flex items-center gap-2"
-                >
-                  <Save size={16} />
-                  {isSubmittingProfile ? 'Ukládám...' : 'Uložit změny'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsEditing(false);
-                    resetProfile();
-                  }}
-                  className="btn-secondary flex items-center gap-2"
-                >
-                  <X size={16} />
-                  Zrušit
-                </button>
-              </div>
+            <form onSubmit={handleSubmitProfile(onSubmitProfile)}>
+              <ProfileEditForm
+                register={registerProfile}
+                errors={profileErrors}
+                isSubmitting={isSubmittingProfile}
+                onCancel={() => {
+                  setIsEditing(false);
+                  resetProfile();
+                }}
+              />
             </form>
           ) : (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <User className="text-gray-400" size={20} />
-                <div>
-                  <p className="text-sm text-gray-600">Jméno a příjmení</p>
-                  <p className="font-medium text-gray-900">
-                    {user.firstName} {user.lastName}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <Mail className="text-gray-400" size={20} />
-                <div>
-                  <p className="text-sm text-gray-600">Email</p>
-                  <p className="font-medium text-gray-900">{user.email}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <Shield className="text-gray-400" size={20} />
-                <div>
-                  <p className="text-sm text-gray-600">Role</p>
-                  <div className="mt-1">{getRoleBadge(user.role)}</div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <Calendar className="text-gray-400" size={20} />
-                <div>
-                  <p className="text-sm text-gray-600">Člen od</p>
-                  <p className="font-medium text-gray-900">
-                    {new Date(user.createdAt).toLocaleDateString('cs-CZ', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </p>
-                </div>
-              </div>
-            </div>
+            <ProfileInfo user={user} getRoleBadge={getRoleBadge} />
           )}
         </div>
 
@@ -290,68 +147,16 @@ export default function ProfilePage() {
           </div>
 
           {isChangingPassword ? (
-            <form onSubmit={handleSubmitPassword(onSubmitPassword)} className="space-y-4">
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">
-                  Současné heslo *
-                </label>
-                <input
-                  {...registerPassword('currentPassword')}
-                  type="password"
-                  className={`input ${passwordErrors.currentPassword ? 'border-red-500' : ''}`}
-                />
-                {passwordErrors.currentPassword && (
-                  <p className="text-red-600 text-sm mt-1">{passwordErrors.currentPassword.message}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">
-                  Nové heslo *
-                </label>
-                <input
-                  {...registerPassword('newPassword')}
-                  type="password"
-                  className={`input ${passwordErrors.newPassword ? 'border-red-500' : ''}`}
-                />
-                {passwordErrors.newPassword && (
-                  <p className="text-red-600 text-sm mt-1">{passwordErrors.newPassword.message}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">
-                  Potvrzení nového hesla *
-                </label>
-                <input
-                  {...registerPassword('confirmPassword')}
-                  type="password"
-                  className={`input ${passwordErrors.confirmPassword ? 'border-red-500' : ''}`}
-                />
-                {passwordErrors.confirmPassword && (
-                  <p className="text-red-600 text-sm mt-1">{passwordErrors.confirmPassword.message}</p>
-                )}
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="submit"
-                  disabled={isSubmittingPassword}
-                  className="btn-primary"
-                >
-                  {isSubmittingPassword ? 'Měním heslo...' : 'Změnit heslo'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsChangingPassword(false);
-                    resetPassword();
-                  }}
-                  className="btn-secondary"
-                >
-                  Zrušit
-                </button>
-              </div>
+            <form onSubmit={handleSubmitPassword(onSubmitPassword)}>
+              <PasswordForm
+                register={registerPassword}
+                errors={passwordErrors}
+                isSubmitting={isSubmittingPassword}
+                onCancel={() => {
+                  setIsChangingPassword(false);
+                  resetPassword();
+                }}
+              />
             </form>
           ) : (
             <p className="text-gray-600">
