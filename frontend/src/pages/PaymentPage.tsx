@@ -1,84 +1,23 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
-import { Elements } from '@stripe/react-stripe-js';
-import CheckoutForm from '../components/CheckoutForm.tsx';
-import api from '../lib/axios';
-import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '../constants/messages';
-import { showErrorToast, showSuccessToast } from '../utils/errorHandling';
-import { CreditCard, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, AlertCircle } from 'lucide-react';
+import { usePayment } from '../hooks/usePayment';
+import PaymentSummary from '../components/payment/PaymentSummary.tsx';
+import PaymentForm from '../components/payment/PaymentForm.tsx';
 
 // Check if Stripe key is configured
 const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 if (!stripeKey) {
   console.error('❌ VITE_STRIPE_PUBLISHABLE_KEY není nastavený!');
-  console.error('Vytvořte soubor frontend/.env a přidejte: VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...');
 } else {
   console.log('✅ Stripe key loaded:', stripeKey.substring(0, 20) + '...');
 }
 
 const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
-interface Reservation {
-  id: string;
-  reservationCode: string;
-  ticketCount: number;
-  totalAmount: number;
-  status: string;
-  event: {
-    id: string;
-    title: string;
-    startDate: string;
-    location: string;
-  };
-}
-
 export default function PaymentPage() {
   const { reservationId } = useParams<{ reservationId: string }>();
-  const navigate = useNavigate();
-  
-  const [reservation, setReservation] = useState<Reservation | null>(null);
-  const [clientSecret, setClientSecret] = useState<string>('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>('');
-
-  useEffect(() => {
-    fetchReservationAndPaymentIntent();
-  }, [reservationId]);
-
-  const fetchReservationAndPaymentIntent = async () => {
-    try {
-      // Načtení detailu rezervace
-      const resResponse = await api.get(`/reservations/${reservationId}`);
-      setReservation(resResponse.data.reservation);
-
-      // Pokud je rezervace zdarma, nekontaktuj Stripe
-      if (Number(resResponse.data.reservation.totalAmount) === 0) {
-        setLoading(false);
-        return;
-      }
-
-      // Pokud je už zaplaceno, přesměruj
-      if (resResponse.data.reservation.status === 'PAID') {
-        showSuccessToast(SUCCESS_MESSAGES.PAYMENT_ALREADY_COMPLETED);
-        navigate('/reservations');
-        return;
-      }
-
-      // Vytvoření payment intent
-      const paymentResponse = await api.post('/payments/create-payment-intent', {
-        reservationId,
-      });
-      
-      setClientSecret(paymentResponse.data.clientSecret);
-    } catch (error) {
-      const errorMsg = error.response?.data?.message || ERROR_MESSAGES.LOAD_PAYMENT_ERROR;
-      setError(errorMsg);
-      showErrorToast(error, ERROR_MESSAGES.LOAD_PAYMENT_ERROR);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { reservation, clientSecret, loading, error, navigate } = usePayment(reservationId);
 
   if (loading) {
     return (
@@ -95,7 +34,7 @@ export default function PaymentPage() {
     );
   }
 
-  // Pokud je rezervace zdarma, přesměruj na rezervace
+  // Free event - no payment needed
   if (reservation && Number(reservation.totalAmount) === 0) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -120,6 +59,7 @@ export default function PaymentPage() {
     );
   }
 
+  // Error state
   if (error || !reservation) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -144,19 +84,7 @@ export default function PaymentPage() {
     );
   }
 
-  const appearance = {
-    theme: 'stripe' as const,
-    variables: {
-      colorPrimary: '#2563eb',
-    },
-  };
-
-  const options = {
-    clientSecret,
-    appearance,
-  };
-
-  // Check if Stripe is configured
+  // Stripe not configured
   if (!stripePromise) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -187,77 +115,16 @@ export default function PaymentPage() {
       <div className="max-w-2xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Platba za rezervaci</h1>
 
-        {/* Shrnutí rezervace */}
-        <div className="card mb-8">
-          <h2 className="text-xl font-bold mb-4">Shrnutí objednávky</h2>
-          
-          <div className="space-y-3 mb-6">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Rezervační kód:</span>
-              <span className="font-mono font-semibold">{reservation.reservationCode}</span>
-            </div>
-            
-            <div className="flex justify-between">
-              <span className="text-gray-600">Akce:</span>
-              <span className="font-medium">{reservation.event.title}</span>
-            </div>
-            
-            <div className="flex justify-between">
-              <span className="text-gray-600">Datum:</span>
-              <span>{new Date(reservation.event.startDate).toLocaleDateString('cs-CZ')}</span>
-            </div>
-            
-            <div className="flex justify-between">
-              <span className="text-gray-600">Místo:</span>
-              <span>{reservation.event.location}</span>
-            </div>
-            
-            <div className="flex justify-between">
-              <span className="text-gray-600">Počet vstupenek:</span>
-              <span>{reservation.ticketCount}x</span>
-            </div>
-          </div>
-
-          <div className="border-t pt-4">
-            <div className="flex justify-between items-center">
-              <span className="text-xl font-bold">Celková cena:</span>
-              <span className="text-2xl font-bold text-primary-600">
-                {Number(reservation.totalAmount) === 0 ? 'Zadarmo' : `${Number(reservation.totalAmount).toLocaleString('cs-CZ')} Kč`}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Stripe Elements */}
-        <div className="card">
-          <div className="flex items-center gap-2 mb-6">
-            <CreditCard className="text-primary-600" size={24} />
-            <h2 className="text-xl font-bold">Platební údaje</h2>
-          </div>
-
-          {clientSecret && (
-            <Elements options={options} stripe={stripePromise}>
-              <CheckoutForm 
-                reservationId={reservation.id}
-                amount={reservation.totalAmount}
-              />
-            </Elements>
-          )}
-
-          <div className="mt-6 pt-6 border-t">
-            <div className="flex items-start gap-2 text-sm text-gray-600">
-              <AlertCircle size={16} className="mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="mb-2">
-                  <strong>Testovací platba:</strong> Pro testování použijte kartu <code className="bg-gray-100 px-2 py-1 rounded">4242 4242 4242 4242</code>
-                </p>
-                <p>
-                  Datum vypršení: jakékoliv budoucí datum, CVC: jakékoliv 3 číslice
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <PaymentSummary reservation={reservation} />
+        
+        {clientSecret && (
+          <PaymentForm
+            stripePromise={stripePromise}
+            clientSecret={clientSecret}
+            reservationId={reservation.id}
+            amount={reservation.totalAmount}
+          />
+        )}
 
         <button
           onClick={() => navigate('/reservations')}

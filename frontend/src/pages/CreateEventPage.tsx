@@ -1,12 +1,11 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useNavigate } from 'react-router-dom';
-import api from '../lib/axios';
-import { Calendar, MapPin, Users, DollarSign, FileText, Image } from 'lucide-react';
-import { EVENT_CATEGORIES } from '../constants/categories';
-import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '../constants/messages';
-import { showErrorToast, showSuccessToast } from '../utils/errorHandling';
+import { useCreateEvent } from '../hooks/useCreateEvent';
+import EventFormBasicInfo from '../components/events/EventFormBasicInfo';
+import EventFormDateTime from '../components/events/EventFormDateTime';
+import EventFormTickets from '../components/events/EventFormTickets';
+import { EventFormData } from '../types/eventForm';
 
 const eventSchema = z.object({
   title: z.string().min(3, 'Název musí mít alespoň 3 znaky'),
@@ -22,10 +21,7 @@ const eventSchema = z.object({
   }),
 });
 
-type EventFormData = z.infer<typeof eventSchema>;
-
 export default function CreateEventPage() {
-  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -38,24 +34,10 @@ export default function CreateEventPage() {
     },
   });
 
+  const { createEvent } = useCreateEvent();
+
   const onSubmit = async (data: EventFormData) => {
-    try {
-      const eventData: any = {
-        ...data,
-        startDate: new Date(data.startDate).toISOString(),
-        endDate: new Date(data.endDate).toISOString(),
-      };
-      
-      if (!eventData.imageUrl || eventData.imageUrl.trim() === '') {
-        delete eventData.imageUrl;
-      }
-      
-      const response = await api.post('/events', eventData);
-      showSuccessToast(SUCCESS_MESSAGES.EVENT_CREATED);
-      navigate(`/events/${response.data.event.id}`);
-    } catch (error) {
-      showErrorToast(error, ERROR_MESSAGES.CREATE_EVENT_ERROR);
-    }
+    await createEvent(data);
   };
 
   return (
@@ -65,210 +47,21 @@ export default function CreateEventPage() {
         <p className="text-gray-600 mb-8">Vyplňte informace o vaší akci</p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Základní informace */}
-          <div className="card">
-            <h2 className="text-xl font-bold mb-4">Základní informace</h2>
-            
-            {/* Název */}
-            <div className="mb-4">
-              <label className="block text-gray-700 font-medium mb-2">
-                Název akce *
-              </label>
-              <div className="relative">
-                <FileText className="absolute left-3 top-3 text-gray-400" size={20} />
-                <input
-                  {...register('title')}
-                  type="text"
-                  placeholder="Např. Letní hudební festival"
-                  className={`input pl-10 ${errors.title ? 'border-red-500' : ''}`}
-                  data-testid="event-title-input"
-                />
-              </div>
-              {errors.title && (
-                <p className="text-red-600 text-sm mt-1">{errors.title.message}</p>
-              )}
-            </div>
+          <EventFormBasicInfo 
+            register={register} 
+            errors={errors}
+          />
+          
+          <EventFormDateTime 
+            register={register} 
+            errors={errors}
+          />
+          
+          <EventFormTickets 
+            register={register} 
+            errors={errors}
+          />
 
-            {/* Popis */}
-            <div className="mb-4">
-              <label className="block text-gray-700 font-medium mb-2">
-                Popis akce *
-              </label>
-              <textarea
-                {...register('description')}
-                rows={5}
-                placeholder="Podrobný popis vaší akce..."
-                className={`input ${errors.description ? 'border-red-500' : ''}`}
-                data-testid="event-description-input"
-              />
-              {errors.description && (
-                <p className="text-red-600 text-sm mt-1">{errors.description.message}</p>
-              )}
-            </div>
-
-            {/* Kategorie */}
-            <div className="mb-4">
-              <label className="block text-gray-700 font-medium mb-2">
-                Kategorie *
-              </label>
-              <select
-                {...register('category')}
-                className={`input ${errors.category ? 'border-red-500' : ''}`}
-                data-testid="event-category-select"
-              >
-                <option value="">Vyberte kategorii</option>
-                {EVENT_CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
-              {errors.category && (
-                <p className="text-red-600 text-sm mt-1">{errors.category.message}</p>
-              )}
-            </div>
-
-            {/* Obrázek */}
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">
-                URL obrázku
-              </label>
-              <div className="relative">
-                <Image className="absolute left-3 top-3 text-gray-400" size={20} />
-                <input
-                  {...register('imageUrl')}
-                  type="url"
-                  placeholder="https://example.com/image.jpg"
-                  className={`input pl-10 ${errors.imageUrl ? 'border-red-500' : ''}`}
-                  data-testid="event-image-input"
-                />
-              </div>
-              {errors.imageUrl && (
-                <p className="text-red-600 text-sm mt-1">{errors.imageUrl.message}</p>
-              )}
-              <p className="text-sm text-gray-500 mt-1">
-                Zatím podporujeme pouze URL obrázků. Upload bude přidán později.
-              </p>
-            </div>
-          </div>
-
-          {/* Datum a místo */}
-          <div className="card">
-            <h2 className="text-xl font-bold mb-4">Datum a místo</h2>
-
-            {/* Datum začátku */}
-            <div className="mb-4">
-              <label className="block text-gray-700 font-medium mb-2">
-                Začátek akce *
-              </label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-3 text-gray-400" size={20} />
-                <input
-                  {...register('startDate')}
-                  type="datetime-local"
-                  className={`input pl-10 ${errors.startDate ? 'border-red-500' : ''}`}
-                  data-testid="event-start-date-input"
-                />
-              </div>
-              {errors.startDate && (
-                <p className="text-red-600 text-sm mt-1">{errors.startDate.message}</p>
-              )}
-            </div>
-
-            {/* Datum konce */}
-            <div className="mb-4">
-              <label className="block text-gray-700 font-medium mb-2">
-                Konec akce *
-              </label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-3 text-gray-400" size={20} />
-                <input
-                  {...register('endDate')}
-                  type="datetime-local"
-                  className={`input pl-10 ${errors.endDate ? 'border-red-500' : ''}`}
-                  data-testid="event-end-date-input"
-                />
-              </div>
-              {errors.endDate && (
-                <p className="text-red-600 text-sm mt-1">{errors.endDate.message}</p>
-              )}
-            </div>
-
-            {/* Místo */}
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">
-                Místo konání *
-              </label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-3 text-gray-400" size={20} />
-                <input
-                  {...register('location')}
-                  type="text"
-                  placeholder="Např. Lucerna Music Bar, Praha"
-                  className={`input pl-10 ${errors.location ? 'border-red-500' : ''}`}
-                  data-testid="event-location-input"
-                />
-              </div>
-              {errors.location && (
-                <p className="text-red-600 text-sm mt-1">{errors.location.message}</p>
-              )}
-            </div>
-          </div>
-
-          {/* Vstupenky a cena */}
-          <div className="card">
-            <h2 className="text-xl font-bold mb-4">Vstupenky</h2>
-
-            <div className="grid md:grid-cols-2 gap-4">
-              {/* Kapacita */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">
-                  Celková kapacita *
-                </label>
-                <div className="relative">
-                  <Users className="absolute left-3 top-3 text-gray-400" size={20} />
-                  <input
-                    {...register('totalTickets')}
-                    type="number"
-                    min="1"
-                    placeholder="100"
-                    className={`input pl-10 ${errors.totalTickets ? 'border-red-500' : ''}`}
-                    data-testid="event-total-tickets-input"
-                  />
-                </div>
-                {errors.totalTickets && (
-                  <p className="text-red-600 text-sm mt-1">{errors.totalTickets.message}</p>
-                )}
-              </div>
-
-              {/* Cena */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">
-                  Cena vstupenky (Kč) *
-                </label>
-                <div className="relative">
-                  <DollarSign className="absolute left-3 top-3 text-gray-400" size={20} />
-                  <input
-                    {...register('ticketPrice')}
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="0"
-                    className={`input pl-10 ${errors.ticketPrice ? 'border-red-500' : ''}`}
-                    data-testid="event-ticket-price-input"
-                  />
-                </div>
-                {errors.ticketPrice && (
-                  <p className="text-red-600 text-sm mt-1">{errors.ticketPrice.message}</p>
-                )}
-                <p className="text-sm text-gray-500 mt-1">
-                  Pro bezplatné akce zadejte 0
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Tlačítka */}
           <div className="flex gap-4">
             <button
               type="submit"
@@ -277,13 +70,6 @@ export default function CreateEventPage() {
               data-testid="create-event-submit-button"
             >
               {isSubmitting ? 'Vytvářím...' : 'Vytvořit akci (jako koncept)'}
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/my-events')}
-              className="btn-secondary"
-            >
-              Zrušit
             </button>
           </div>
 
