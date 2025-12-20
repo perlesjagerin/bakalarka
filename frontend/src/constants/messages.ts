@@ -92,8 +92,7 @@ export const SUCCESS_MESSAGES = {
   PASSWORD_CHANGED: 'Heslo bylo změněno',
   
   // Tickets
-  TICKET_DOWNLOAD_PLACEHOLDER: 'Stahování vstupenky {code} (placeholder)',
-  TICKET_DOWNLOADED_PLACEHOLDER: 'Vstupenka byla stažena (placeholder)',
+  TICKET_DOWNLOADED: 'Vstupenka byla stažena',
 } as const;
 
 export const VALIDATION_MESSAGES = {

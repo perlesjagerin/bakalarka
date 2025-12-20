@@ -5,10 +5,13 @@
 - OK - neexistující url přesměruje kam?
 - OK - "Nepodařilo se načíst platbu" Chyba při načítání platby error
 - OK - otestovat po zaplacení - Pokud byla platba provedena, označí se k refundaci
-- STRIPE_WEBHOOK_SECRET kde zjistit a k čemu?
-- email notifikace o zrušení akce
-- vstupenka byla stažena (placeholder)
-- Email potvrzení je odeslán (po implementaci)
+- OK - email notifikace o zrušení akce
+- OK - STRIPE_WEBHOOK_SECRET kde zjistit a k čemu?
+- OK - vstupenka byla stažena (placeholder)
+- OK - Email potvrzení je odeslán (po implementaci)
+
+- text v pdf špatně vygenerován, jsou tam neznámé znaky
+- jak řešit refundaci zadarmo akcí
 
 Co dál?
 

@@ -60,9 +60,29 @@ export default function PaymentSuccessPage() {
     }
   };
 
-  const downloadTicket = () => {
-    // TODO: Implementovat generování PDF vstupenky s QR kódem
-    toast.success('Vstupenka byla stažena (placeholder)');
+  const downloadTicket = async () => {
+    if (!reservation) return;
+
+    try {
+      const response = await api.get(`/tickets/download/${reservation.id}`, {
+        responseType: 'blob',
+      });
+
+      // Create blob URL and trigger download
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `vstupenka-${reservation.reservationCode}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success('Vstupenka byla stažena');
+    } catch (error) {
+      showErrorToast(error, 'Chyba při stahování vstupenky');
+    }
   };
 
   if (loading) {

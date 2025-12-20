@@ -11,9 +11,10 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "prisma:seed": "tsx prisma/seed.ts",
-    "test": "jest --runInBand",
-    "test:watch": "jest --watch --runInBand",
-    "test:coverage": "jest --coverage --runInBand",
+    "cleanup:test-users": "tsx scripts/cleanup-test-users.ts",
+    "test": "NODE_ENV=test DATABASE_URL=postgresql://I751134@localhost:5432/ticket_reservation_test?schema=public jest --runInBand",
+    "test:watch": "NODE_ENV=test DATABASE_URL=postgresql://I751134@localhost:5432/ticket_reservation_test?schema=public jest --watch --runInBand",
+    "test:coverage": "NODE_ENV=test DATABASE_URL=postgresql://I751134@localhost:5432/ticket_reservation_test?schema=public jest --coverage --runInBand",
     "test:setup": "bash scripts/setup-test-db.sh",
     "lint": "eslint . --ext .ts"
   },
@@ -22,6 +23,8 @@
   },
   "dependencies": {
     "@prisma/client": "^5.7.1",
+    "@types/pdfkit": "^0.17.4",
+    "@types/qrcode": "^1.5.6",
     "bcryptjs": "^2.4.3",
     "compression": "^1.8.1",
     "cors": "^2.8.5",
@@ -34,6 +37,8 @@
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.10.1",
+    "pdfkit": "^0.17.2",
+    "qrcode": "^1.5.4",
     "stripe": "^14.9.0",
     "zod": "^3.22.4"
   },

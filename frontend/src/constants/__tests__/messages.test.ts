@@ -112,8 +112,7 @@ describe('messages constants', () => {
     });
 
     it('should have ticket messages', () => {
-      expect(SUCCESS_MESSAGES.TICKET_DOWNLOAD_PLACEHOLDER).toBe('Stahování vstupenky {code} (placeholder)');
-      expect(SUCCESS_MESSAGES.TICKET_DOWNLOADED_PLACEHOLDER).toBe('Vstupenka byla stažena (placeholder)');
+      expect(SUCCESS_MESSAGES.TICKET_DOWNLOADED).toBe('Vstupenka byla stažena');
     });
   });
 

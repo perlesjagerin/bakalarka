@@ -4,7 +4,16 @@ import { PrismaClient } from '@prisma/client';
 // Setup pro Jest testy
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing-only';
-process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/ticket_reservation_test';
+
+// KRITICKÉ: Zajistíme, že testy NIKDY nepoužijí produkční databázi
+const dbUrl = process.env.DATABASE_URL;
+if (!dbUrl || !dbUrl.includes('_test')) {
+  console.error('❌ CHYBA: Testy musí používat testovací databázi!');
+  console.error(`   Aktuální DB: ${dbUrl || 'není nastavena'}`);
+  console.error('   Očekáváno: DATABASE_URL obsahující "_test"');
+  console.error('   Spusťte testy přes: npm test');
+  process.exit(1);
+}
 
 const prisma = new PrismaClient();
 
@@ -64,12 +73,13 @@ afterAll(async () => {
   console.log('🧹 Cleaning up test data...');
   
   try {
-    // Najdeme všechny testovací uživatele (obsahují "test" nebo "events" v emailu)
+    // Najdeme všechny testovací uživatele (obsahují "test", "events" nebo "example" v emailu)
     const testUsers = await prisma.user.findMany({
       where: {
         OR: [
           { email: { contains: 'test' } },
-          { email: { contains: 'events' } }
+          { email: { contains: 'events' } },
+          { email: { contains: 'example' } }
         ]
       },
       select: { id: true }
@@ -86,13 +96,21 @@ afterAll(async () => {
       await prisma.payment.deleteMany({
         where: {
           reservation: {
-            userId: { in: testUserIds }
+            OR: [
+              { userId: { in: testUserIds } },
+              { event: { organizerId: { in: testUserIds } } }
+            ]
           }
         }
       });
       
       await prisma.reservation.deleteMany({
-        where: { userId: { in: testUserIds } }
+        where: {
+          OR: [
+            { userId: { in: testUserIds } },
+            { event: { organizerId: { in: testUserIds } } }
+          ]
+        }
       });
       
       await prisma.event.deleteMany({

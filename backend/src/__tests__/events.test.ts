@@ -302,4 +302,103 @@ describe('Events Endpoints', () => {
       expect(res.status).toBe(401);
     });
   });
+
+  describe('Additional Event Tests', () => {
+    it('should fail to get non-existent event', async () => {
+      const res = await request(app)
+        .get('/api/events/non-existent-id');
+
+      expect(res.status).toBe(404);
+    });
+
+    it('should fail to update non-existent event', async () => {
+      const res = await request(app)
+        .patch('/api/events/non-existent-id')
+        .set('Authorization', `Bearer ${organizerToken}`)
+        .send({ title: 'Updated Title' });
+
+      expect(res.status).toBe(404);
+    });
+
+    it('should fail to delete non-existent event', async () => {
+      const res = await request(app)
+        .delete('/api/events/non-existent-id')
+        .set('Authorization', `Bearer ${organizerToken}`);
+
+      expect(res.status).toBe(404);
+    });
+
+    it('should create event with valid ticketPrice 0 (free event)', async () => {
+      const eventData = {
+        title: 'Free Event Test',
+        description: 'Free event',
+        location: 'Free Location',
+        startDate: new Date(Date.now() + 86400000).toISOString(),
+        endDate: new Date(Date.now() + 90000000).toISOString(),
+        category: 'Vzdělávaní',
+        totalTickets: 100,
+        ticketPrice: 0,
+        status: 'PUBLISHED'
+      };
+
+      const res = await request(app)
+        .post('/api/events')
+        .set('Authorization', `Bearer ${organizerToken}`)
+        .send(eventData);
+
+      expect(res.status).toBe(201);
+      expect(Number(res.body.event.ticketPrice)).toBe(0);
+    });
+
+    it('should fail to create event with missing required fields', async () => {
+      const res = await request(app)
+        .post('/api/events')
+        .set('Authorization', `Bearer ${organizerToken}`)
+        .send({
+          title: 'Incomplete Event'
+        });
+
+      expect(res.status).toBe(400);
+    });
+
+    it('should update event partially', async () => {
+      const eventData = {
+        title: 'Original Title',
+        description: 'Original description',
+        location: 'Original Location',
+        startDate: new Date(Date.now() + 86400000).toISOString(),
+        endDate: new Date(Date.now() + 90000000).toISOString(),
+        category: 'Hudba',
+        totalTickets: 100,
+        ticketPrice: 500
+      };
+
+      const createRes = await request(app)
+        .post('/api/events')
+        .set('Authorization', `Bearer ${organizerToken}`)
+        .send(eventData);
+      
+      const eventId = createRes.body.event.id;
+
+      const res = await request(app)
+        .patch(`/api/events/${eventId}`)
+        .set('Authorization', `Bearer ${organizerToken}`)
+        .send({
+          title: 'Updated Title Only'
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.event.title).toBe('Updated Title Only');
+      expect(res.body.event.description).toBe('Original description');
+    });
+
+    it('should filter events by multiple categories', async () => {
+      const res = await request(app)
+        .get('/api/events')
+        .query({ category: 'Hudba,Sport' });
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('events');
+    });
+  });
 });

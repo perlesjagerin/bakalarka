@@ -12,6 +12,7 @@ import eventRoutes from './routes/event.routes';
 import reservationRoutes from './routes/reservation.routes';
 import paymentRoutes from './routes/payment.routes';
 import complaintRoutes from './routes/complaint.routes';
+import ticketRoutes from './routes/ticket.routes';
 
 // Import middleware
 import { errorHandler } from './middleware/error.middleware';
@@ -58,6 +59,7 @@ app.use('/api/events', eventRoutes);
 app.use('/api/reservations', reservationRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/complaints', complaintRoutes);
+app.use('/api/tickets', ticketRoutes);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {

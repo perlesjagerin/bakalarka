@@ -234,4 +234,58 @@ describe('Payment Endpoints', () => {
       consoleErrorSpy.mockRestore();
     });
   });
+
+  describe('Additional Payment Tests', () => {
+    it('should fail to create payment intent for non-existent reservation', async () => {
+      const res = await request(app)
+        .post('/api/payments/create-payment-intent')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          reservationId: 'non-existent-id'
+        });
+
+      expect(res.status).toBe(404);
+    });
+
+    it('should fail to create payment intent without reservationId', async () => {
+      const res = await request(app)
+        .post('/api/payments/create-payment-intent')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({});
+
+      expect(res.status).toBe(400);
+    });
+
+    it('should fail to get payment status for non-existent payment', async () => {
+      const res = await request(app)
+        .get('/api/payments/non-existent-id/status')
+        .set('Authorization', `Bearer ${userToken}`);
+
+      expect(res.status).toBe(404);
+    });
+
+    it('should handle existing payment intent for reservation', async () => {
+      // First create a payment intent
+      const firstRes = await request(app)
+        .post('/api/payments/create-payment-intent')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          reservationId: testReservationId
+        });
+
+      expect(firstRes.status).toBe(200);
+      const firstClientSecret = firstRes.body.clientSecret;
+
+      // Try to create another one for the same reservation
+      const secondRes = await request(app)
+        .post('/api/payments/create-payment-intent')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          reservationId: testReservationId
+        });
+
+      expect(secondRes.status).toBe(200);
+      expect(secondRes.body.clientSecret).toBe(firstClientSecret);
+    });
+  });
 });
