@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Layouts
 import Layout from './components/layout/Layout';
@@ -25,13 +26,14 @@ function App() {
   const { user, isAuthenticated } = useAuthStore();
 
   return (
-    <Routes>
-      <Route path="/" element={<Layout />}>
-        <Route index element={<HomePage />} />
-        <Route path="login" element={!isAuthenticated ? <LoginPage /> : <Navigate to="/" />} />
-        <Route path="register" element={!isAuthenticated ? <RegisterPage /> : <Navigate to="/" />} />
-        <Route path="events" element={<EventsPage />} />
-        <Route path="events/:id" element={<EventDetailPage />} />
+    <ErrorBoundary>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<HomePage />} />
+          <Route path="login" element={!isAuthenticated ? <LoginPage /> : <Navigate to="/" />} />
+          <Route path="register" element={!isAuthenticated ? <RegisterPage /> : <Navigate to="/" />} />
+          <Route path="events" element={<EventsPage />} />
+          <Route path="events/:id" element={<EventDetailPage />} />
         
         {/* Protected routes */}
         <Route
@@ -110,6 +112,7 @@ function App() {
         />
       </Route>
     </Routes>
+    </ErrorBoundary>
   );
 }
 
