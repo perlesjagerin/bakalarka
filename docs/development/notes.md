@@ -9,8 +9,8 @@
 - OK - STRIPE_WEBHOOK_SECRET kde zjistit a k čemu?
 - OK - vstupenka byla stažena (placeholder)
 - OK - Email potvrzení je odeslán (po implementaci)
+- OK - text v pdf špatně vygenerován, jsou tam neznámé znaky (opraveno - použití Arial TTF s plnou podporou Unicode)
 
-- text v pdf špatně vygenerován, jsou tam neznámé znaky
 - jak řešit refundaci zadarmo akcí
 
 Co dál?
