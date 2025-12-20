@@ -1,0 +1,259 @@
+import Stripe from 'stripe';
+import prisma from '../config/database';
+import { AppError } from '../middleware/error.middleware';
+import { emailService } from '../utils/emailService';
+
+if (!process.env.STRIPE_SECRET_KEY) {
+  console.error('❌ STRIPE_SECRET_KEY není nastavený v .env souboru!');
+  console.error('Přidejte do backend/.env: STRIPE_SECRET_KEY=sk_test_...');
+}
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+  apiVersion: '2023-10-16'
+});
+
+class PaymentService {
+  /**
+   * Create or retrieve Stripe payment intent for reservation
+   */
+  async createPaymentIntent(reservationId: string, userId: string) {
+    console.log('🔵 PaymentService.createPaymentIntent called');
+    console.log('ReservationId:', reservationId, 'UserId:', userId);
+
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new AppError('Stripe není nakonfigurován. Kontaktujte administrátora.', 500);
+    }
+
+    if (!reservationId) {
+      throw new AppError('ID rezervace je povinné', 400);
+    }
+
+    const reservation = await prisma.reservation.findUnique({
+      where: { id: reservationId },
+      include: {
+        event: true,
+        payment: true
+      }
+    });
+
+    if (!reservation) {
+      console.log('Reservation not found:', reservationId);
+      throw new AppError('Rezervace nebyla nalezena', 404);
+    }
+
+    console.log('Reservation found:', {
+      id: reservation.id,
+      status: reservation.status,
+      userId: reservation.userId,
+      totalAmount: reservation.totalAmount,
+      hasPayment: !!reservation.payment
+    });
+
+    // Pokud je akce zdarma, nelze vytvořit payment intent
+    if (Number(reservation.totalAmount) === 0) {
+      console.log('❌ Cannot create payment intent for free reservation');
+      throw new AppError('Akce je zdarma, platba není potřeba', 400);
+    }
+
+    if (reservation.userId !== userId) {
+      console.log('❌ User mismatch');
+      throw new AppError('Nemáte oprávnění k této rezervaci', 403);
+    }
+
+    if (reservation.status !== 'PENDING') {
+      console.log('❌ Status not PENDING:', reservation.status);
+      throw new AppError('Tuto rezervaci nelze zaplatit', 400);
+    }
+
+    console.log('✅ Reservation validation passed');
+
+    // Check if payment already exists and is reusable
+    if (reservation.payment) {
+      console.log('Payment already exists:', reservation.payment);
+      
+      if (reservation.payment.status === 'PENDING' && reservation.payment.stripePaymentId) {
+        console.log('Attempting to retrieve existing payment intent:', reservation.payment.stripePaymentId);
+        try {
+          const existingIntent = await stripe.paymentIntents.retrieve(
+            reservation.payment.stripePaymentId
+          );
+          
+          console.log('Existing payment intent status:', existingIntent.status);
+          
+          // If payment intent is still usable, return it
+          if (existingIntent.status === 'requires_payment_method' || 
+              existingIntent.status === 'requires_confirmation' ||
+              existingIntent.status === 'requires_action') {
+            console.log('✅ Reusing existing payment intent');
+            console.log('Returning clientSecret:', existingIntent.client_secret?.substring(0, 20) + '...');
+            return {
+              clientSecret: existingIntent.client_secret,
+              payment: reservation.payment
+            };
+          }
+          console.log('⚠️ Payment intent not usable, creating new one');
+        } catch (stripeError: any) {
+          console.log('❌ Error retrieving payment intent:', stripeError.message);
+          // If payment intent doesn't exist on Stripe, we'll create a new one
+        }
+      } else if (reservation.payment.status !== 'PENDING') {
+        console.log('❌ Payment already completed/failed');
+        throw new AppError('Platba již existuje', 400);
+      }
+    }
+
+    // Create new Stripe payment intent
+    console.log('Creating new payment intent for amount:', reservation.totalAmount);
+    
+    if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY === '') {
+      console.log('❌ STRIPE_SECRET_KEY is not set!');
+      throw new AppError('Platební brána není nakonfigurována. Kontaktujte administrátora.', 500);
+    }
+    
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(Number(reservation.totalAmount) * 100), // Convert to cents
+      currency: 'czk',
+      metadata: {
+        reservationId: reservation.id,
+        userId: userId,
+        eventTitle: reservation.event.title
+      }
+    });
+    
+    console.log('✅ Payment intent created:', paymentIntent.id);
+
+    // Create or update payment record
+    const payment = reservation.payment 
+      ? await prisma.payment.update({
+          where: { id: reservation.payment.id },
+          data: {
+            stripePaymentId: paymentIntent.id,
+            status: 'PENDING'
+          }
+        })
+      : await prisma.payment.create({
+          data: {
+            reservationId: reservation.id,
+            amount: reservation.totalAmount,
+            stripePaymentId: paymentIntent.id,
+            status: 'PENDING'
+          }
+        });
+
+    return {
+      clientSecret: paymentIntent.client_secret,
+      payment
+    };
+  }
+
+  /**
+   * Handle Stripe webhook events
+   */
+  async handleWebhook(sig: string | string[], rawBody: Buffer) {
+    if (!sig) {
+      throw new AppError('Chybí Stripe signature', 400);
+    }
+
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      throw new AppError('Webhook secret není nastaven', 500);
+    }
+
+    // Verify webhook signature
+    const event = stripe.webhooks.constructEvent(
+      rawBody,
+      sig,
+      webhookSecret
+    );
+
+    // Handle the event
+    switch (event.type) {
+      case 'payment_intent.succeeded': {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        const reservationId = paymentIntent.metadata.reservationId;
+
+        // Update payment status
+        await prisma.payment.updateMany({
+          where: { stripePaymentId: paymentIntent.id },
+          data: { status: 'COMPLETED', paymentMethod: paymentIntent.payment_method as string }
+        });
+
+        // Update reservation status
+        await prisma.reservation.update({
+          where: { id: reservationId },
+          data: { status: 'PAID' }
+        });
+
+        // Send payment confirmation email (non-blocking)
+        try {
+          const reservation = await prisma.reservation.findUnique({
+            where: { id: reservationId },
+            include: {
+              event: { select: { title: true } },
+              user: { select: { email: true, firstName: true } }
+            }
+          });
+
+          if (reservation) {
+            emailService.sendPaymentConfirmation(
+              reservation.user.email,
+              reservation.user.firstName,
+              reservation.event.title,
+              reservation.reservationCode,
+              Number(reservation.totalAmount)
+            ).catch(err => console.error('Failed to send payment confirmation email:', err));
+          }
+        } catch (emailError) {
+          console.error('Error sending payment confirmation email:', emailError);
+        }
+
+        break;
+      }
+
+      case 'payment_intent.payment_failed': {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+
+        await prisma.payment.updateMany({
+          where: { stripePaymentId: paymentIntent.id },
+          data: { status: 'FAILED' }
+        });
+
+        break;
+      }
+
+      default:
+        console.log(`Unhandled event type ${event.type}`);
+    }
+
+    return { received: true };
+  }
+
+  /**
+   * Get payment by ID with authorization check
+   */
+  async getPaymentStatus(paymentId: string, userId: string, userRole: string) {
+    const payment = await prisma.payment.findUnique({
+      where: { id: paymentId },
+      include: {
+        reservation: {
+          include: {
+            event: true
+          }
+        }
+      }
+    });
+
+    if (!payment) {
+      throw new AppError('Platba nebyla nalezena', 404);
+    }
+
+    // Verify user owns this payment
+    if (payment.reservation.userId !== userId && userRole !== 'ADMIN') {
+      throw new AppError('Nemáte oprávnění k této platbě', 403);
+    }
+
+    return payment;
+  }
+}
+
+export const paymentService = new PaymentService();
