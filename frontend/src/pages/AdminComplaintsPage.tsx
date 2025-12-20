@@ -6,6 +6,9 @@ import ComplaintStats from '../components/admin/ComplaintStats';
 import ComplaintFilters from '../components/admin/ComplaintFilters';
 import ComplaintDetail from '../components/admin/ComplaintDetail';
 import StatusBadge from '../components/common/StatusBadge';
+import EmptyState from '../components/common/EmptyState';
+import { FileX } from 'lucide-react';
+
 
 type FilterType = 'all' | 'SUBMITTED' | 'IN_REVIEW' | 'REJECTED' | 'RESOLVED';
 
@@ -114,8 +117,11 @@ export default function AdminComplaintsPage() {
         {/* List */}
         <div className="space-y-4">
           {filteredComplaints.length === 0 ? (
-            <div className="card text-center py-8">
-              <p className="text-gray-600">Žádné reklamace v této kategorii.</p>
+            <div className="card">
+              <EmptyState
+                icon={<FileX size={48} className="text-gray-400" />}
+                title="Žádné reklamace v této kategorii."
+              />
             </div>
           ) : (
             filteredComplaints.map((complaint) => (

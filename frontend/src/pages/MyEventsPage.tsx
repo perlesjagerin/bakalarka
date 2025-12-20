@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { Plus, Calendar } from 'lucide-react';
 import MyEventCard from '../components/MyEventCard';
 import EventStats from '../components/events/EventStats.tsx';
 import EventFilters from '../components/events/EventFilters.tsx';
 import { useMyEvents } from '../hooks/useMyEvents';
 import { useAuthStore } from '../store/authStore';
 import StatusBadge from '../components/common/StatusBadge';
+import EmptyState from '../components/common/EmptyState';
+
 
 type FilterType = 'all' | 'PUBLISHED' | 'DRAFT' | 'COMPLETED' | 'CANCELLED';
 
@@ -57,22 +59,23 @@ export default function MyEventsPage() {
       <EventFilters filter={filter} setFilter={setFilter} />
 
       {filteredEvents.length === 0 ? (
-        <div className="card text-center py-12">
-          <p className="text-gray-600 mb-4">
-            {filter === 'all'
-              ? 'Zatím jste nevytvořili žádnou akci.'
-              : 'Žádné akce v této kategorii.'}
-          </p>
-          {filter === 'all' && (
-            <Link
-              to="/events/create"
-              className="btn-primary inline-flex items-center gap-2"
-              data-testid="create-first-event-button"
-            >
-              <Plus size={20} />
-              Vytvořit první akci
-            </Link>
-          )}
+        <div className="card">
+          <EmptyState
+            icon={<Calendar size={48} className="text-gray-400" />}
+            title={filter === 'all' ? 'Zatím jste nevytvořili žádnou akci.' : 'Žádné akce v této kategorii.'}
+            action={
+              filter === 'all' ? (
+                <Link
+                  to="/events/create"
+                  className="btn-primary inline-flex items-center gap-2"
+                  data-testid="create-first-event-button"
+                >
+                  <Plus size={20} />
+                  Vytvořit první akci
+                </Link>
+              ) : undefined
+            }
+          />
         </div>
       ) : (
         <div className="space-y-4">

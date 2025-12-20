@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Search } from 'lucide-react';
+import { Search, Calendar } from 'lucide-react';
 import EventCard from '../components/EventCard';
+import EmptyState from '../components/common/EmptyState';
+
 import { Event } from '../types';
 import api from '../lib/axios';
 import { ERROR_MESSAGES } from '../constants/messages';
@@ -74,8 +76,11 @@ export default function EventsPage() {
           <p className="text-gray-600">Načítání...</p>
         </div>
       ) : filteredEvents.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-600">Žádné akce nebyly nalezeny.</p>
+        <div className="card">
+          <EmptyState
+            icon={<Calendar size={48} className="text-gray-400" />}
+            title="Žádné akce nebyly nalezeny."
+          />
         </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
