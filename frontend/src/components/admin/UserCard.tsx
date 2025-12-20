@@ -1,4 +1,6 @@
+import { memo } from 'react';
 import { Mail, Calendar, Shield, Trash2, CheckCircle } from 'lucide-react';
+import { formatDate } from '../../utils/formatters';
 
 interface User {
   id: string;
@@ -15,7 +17,7 @@ interface UserCardProps {
   onToggleStatus: (userId: string, currentStatus: boolean) => void;
 }
 
-export default function UserCard({ user, onToggleStatus }: UserCardProps) {
+function UserCard({ user, onToggleStatus }: UserCardProps) {
   const getRoleBadge = (role: string) => {
     const badges = {
       USER: 'bg-blue-100 text-blue-800',
@@ -85,3 +87,5 @@ export default function UserCard({ user, onToggleStatus }: UserCardProps) {
     </div>
   );
 }
+
+export default memo(UserCard);

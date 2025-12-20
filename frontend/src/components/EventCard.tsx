@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, MapPin, Ticket } from 'lucide-react';
 import { format } from 'date-fns';
@@ -26,7 +26,7 @@ interface EventCardProps {
   event: Event;
 }
 
-export default function EventCard({ event }: EventCardProps) {
+function EventCard({ event }: EventCardProps) {
   const [imageError, setImageError] = useState(false);
   const categoryStyle = getCategoryStyle(event.category);
   
@@ -93,3 +93,5 @@ export default function EventCard({ event }: EventCardProps) {
     </Link>
   );
 }
+
+export default memo(EventCard);

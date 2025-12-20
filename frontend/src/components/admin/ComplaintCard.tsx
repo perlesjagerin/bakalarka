@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Calendar, User, FileText } from 'lucide-react';
 import { Complaint } from '../../types/complaint';
 import StatusBadge from '../common/StatusBadge';
@@ -9,7 +10,7 @@ interface ComplaintCardProps {
   onSelect: () => void;
 }
 
-export default function ComplaintCard({ 
+function ComplaintCard({ 
   complaint, 
   isSelected, 
   onSelect
@@ -64,3 +65,5 @@ export default function ComplaintCard({
     </div>
   );
 }
+
+export default memo(ComplaintCard);

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, MapPin, Users, DollarSign, Edit, Trash2, Eye } from 'lucide-react';
 import { getCategoryStyle } from '../utils/eventDefaults';
@@ -32,7 +32,7 @@ interface MyEventCardProps {
   onStatusChange: (id: string, status: string) => void;
 }
 
-export default function MyEventCard({ event, userRole, onDelete, onStatusChange }: MyEventCardProps) {
+function MyEventCard({ event, userRole, onDelete, onStatusChange }: MyEventCardProps) {
   const [imageError, setImageError] = useState(false);
   const categoryStyle = getCategoryStyle(event.category);
   
@@ -192,3 +192,5 @@ export default function MyEventCard({ event, userRole, onDelete, onStatusChange 
     </div>
   );
 }
+
+export default memo(MyEventCard);

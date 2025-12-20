@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, MapPin, Ticket, Download, X, AlertCircle, Edit } from 'lucide-react';
 import { getCategoryStyle } from '../utils/eventDefaults';
@@ -46,7 +46,7 @@ interface ReservationCardProps {
   handleStartEdit: (reservation: any) => void;
 }
 
-export default function ReservationCard({ 
+function ReservationCard({ 
   reservation, 
   onCancel, 
   downloadTicket,
@@ -266,3 +266,5 @@ export default function ReservationCard({
     </div>
   );
 }
+
+export default memo(ReservationCard);
