@@ -59,7 +59,7 @@ export default function PaymentPage() {
       }
 
       // Pokud je už zaplaceno, přesměruj
-      if (resResponse.data.reservation.status === 'CONFIRMED') {
+      if (resResponse.data.reservation.status === 'PAID') {
         showSuccessToast(SUCCESS_MESSAGES.PAYMENT_ALREADY_COMPLETED);
         navigate('/reservations');
         return;

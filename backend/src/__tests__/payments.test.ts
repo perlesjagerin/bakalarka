@@ -167,11 +167,11 @@ describe('Payment Endpoints', () => {
       }
     });
 
-    it('should fail for already confirmed reservation', async () => {
-      // Update reservation status to CONFIRMED
+    it('should fail for already paid reservation', async () => {
+      // Update reservation status to PAID
       await prisma.reservation.update({
         where: { id: testReservationId },
-        data: { status: 'CONFIRMED' }
+        data: { status: 'PAID' }
       });
 
       const res = await request(app)

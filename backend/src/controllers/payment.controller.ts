@@ -201,7 +201,7 @@ export const handleWebhook = async (
         // Update reservation status
         await prisma.reservation.update({
           where: { id: reservationId },
-          data: { status: 'CONFIRMED' }
+          data: { status: 'PAID' }
         });
 
         // Send payment confirmation email (non-blocking)

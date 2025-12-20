@@ -511,7 +511,7 @@ export default function AdminComplaintsPage() {
                           value={editedStatus}
                           onChange={(e) => setEditedStatus(e.target.value as any)}
                           className="input"
-                          disabled={selectedComplaint.refundIssued}
+                          disabled={selectedComplaint.refundIssued || refundCheckbox}
                         >
                           <option value="SUBMITTED">Čeká na zpracování</option>
                           <option value="IN_REVIEW">V řešení</option>
@@ -521,6 +521,11 @@ export default function AdminComplaintsPage() {
                         {selectedComplaint.refundIssued && (
                           <p className="text-sm text-gray-600 mt-1">
                             🔒 Status nelze měnit - refundace již byla provedena
+                          </p>
+                        )}
+                        {refundCheckbox && !selectedComplaint.refundIssued && (
+                          <p className="text-sm text-blue-600 mt-1">
+                            🔒 Status automaticky nastaven na "Vyřešeno" při refundaci
                           </p>
                         )}
                       </div>
@@ -543,7 +548,13 @@ export default function AdminComplaintsPage() {
                             <input
                               type="checkbox"
                               checked={refundCheckbox}
-                              onChange={(e) => setRefundCheckbox(e.target.checked)}
+                              onChange={(e) => {
+                                setRefundCheckbox(e.target.checked);
+                                // Automaticky nastav status na RESOLVED když je zaškrtnuta refundace
+                                if (e.target.checked) {
+                                  setEditedStatus('RESOLVED');
+                                }
+                              }}
                               className="w-4 h-4 text-primary-600 rounded focus:ring-2 focus:ring-primary-500"
                             />
                             <span className="text-sm font-medium">

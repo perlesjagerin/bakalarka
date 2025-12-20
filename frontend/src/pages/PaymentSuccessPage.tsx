@@ -4,7 +4,7 @@ import { CheckCircle, Download, Calendar, MapPin, Ticket } from 'lucide-react';
 import { getCategoryStyle } from '../utils/eventDefaults';
 import api from '../lib/axios';
 import { ERROR_MESSAGES } from '../constants/messages';
-import { showErrorToast } from '../utils/errorHandling';
+import { showErrorToast, showSuccessToast } from '../utils/errorHandling';
 
 interface Reservation {
   id: string;
@@ -79,7 +79,7 @@ export default function PaymentSuccessPage() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
-      toast.success('Vstupenka byla stažena');
+      showSuccessToast('Vstupenka byla stažena');
     } catch (error) {
       showErrorToast(error, 'Chyba při stahování vstupenky');
     }

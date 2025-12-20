@@ -93,11 +93,11 @@ export default function ComplaintsPage() {
         api.get('/complaints/my'),
       ]);
       
-      // Filtrovat pouze potvrzené rezervace
-      const confirmedReservations = resResponse.data.reservations.filter(
-        (r: Reservation) => r.status === 'CONFIRMED'
+      // Filtrovat pouze zaplacené rezervace
+      const paidReservations = resResponse.data.reservations.filter(
+        (r: Reservation) => r.status === 'PAID'
       );
-      setReservations(confirmedReservations);
+      setReservations(paidReservations);
       setComplaints(compResponse.data.complaints);
     } catch (error) {
       showErrorToast(error, ERROR_MESSAGES.LOAD_DATA_ERROR);

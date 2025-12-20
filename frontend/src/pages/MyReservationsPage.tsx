@@ -11,7 +11,7 @@ interface Reservation {
   reservationCode: string;
   ticketCount: number;
   totalAmount: number;
-  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'REFUNDED';
+  status: 'PENDING' | 'PAID' | 'CANCELLED' | 'REFUNDED';
   createdAt: string;
   event: {
     id: string;
@@ -37,7 +37,7 @@ interface Reservation {
 export default function MyReservationsPage() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'REFUNDED'>('all');
+  const [filter, setFilter] = useState<'all' | 'PENDING' | 'PAID' | 'CANCELLED' | 'REFUNDED'>('all');
   const [editingReservationId, setEditingReservationId] = useState<string | null>(null);
   const [newTicketCount, setNewTicketCount] = useState<number>(1);
 
@@ -128,15 +128,15 @@ export default function MyReservationsPage() {
   const getStatusBadge = (status: string) => {
     const badges = {
       PENDING: 'bg-yellow-100 text-yellow-800',
-      CONFIRMED: 'bg-green-100 text-green-800',
+      PAID: 'bg-green-100 text-green-800',
       CANCELLED: 'bg-red-100 text-red-800',
       REFUNDED: 'bg-blue-100 text-blue-800',
     };
     const labels = {
       PENDING: 'Čeká na platbu',
-      CONFIRMED: 'Potvrzeno',
+      PAID: 'Zaplaceno',
       CANCELLED: 'Zrušeno',
-      REFUNDED: 'Vráceno',
+      REFUNDED: 'Refundováno',
     };
     return (
       <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${badges[status as keyof typeof badges]}`}>
@@ -172,9 +172,9 @@ export default function MyReservationsPage() {
           <p className="text-3xl font-bold text-gray-900">{reservations.length}</p>
         </div>
         <div className="card">
-          <p className="text-gray-600 mb-1">Potvrzené</p>
+          <p className="text-gray-600 mb-1">Zaplaceno</p>
           <p className="text-3xl font-bold text-green-600">
-            {reservations.filter(r => r.status === 'CONFIRMED').length}
+            {reservations.filter(r => r.status === 'PAID').length}
           </p>
         </div>
         <div className="card">
@@ -187,7 +187,7 @@ export default function MyReservationsPage() {
           <p className="text-gray-600 mb-1">Celková útrata</p>
           <p className="text-3xl font-bold text-primary-600">
             {reservations
-              .filter(r => r.status === 'CONFIRMED')
+              .filter(r => r.status === 'PAID')
               .reduce((sum, r) => sum + Number(r.totalAmount), 0)
               .toLocaleString('cs-CZ')} Kč
           </p>
@@ -196,7 +196,7 @@ export default function MyReservationsPage() {
 
       {/* Filters */}
       <div className="mb-6 flex gap-2">
-        {(['all', 'PENDING', 'CONFIRMED', 'CANCELLED', 'REFUNDED'] as const).map((f) => (
+        {(['all', 'PENDING', 'PAID', 'CANCELLED', 'REFUNDED'] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
@@ -208,9 +208,9 @@ export default function MyReservationsPage() {
           >
             {f === 'all' ? 'Vše' : 
              f === 'PENDING' ? 'Čeká na platbu' :
-             f === 'CONFIRMED' ? 'Potvrzené' :
+             f === 'PAID' ? 'Zaplaceno' :
              f === 'CANCELLED' ? 'Zrušené' :
-             'Vráceno'}
+             'Refundováno'}
           </button>
         ))}
       </div>

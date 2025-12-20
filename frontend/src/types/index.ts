@@ -38,7 +38,7 @@ export interface Reservation {
   userId: string;
   ticketCount: number;
   totalAmount: number;
-  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'REFUNDED';
+  status: 'PENDING' | 'PAID' | 'CANCELLED' | 'REFUNDED';
   reservationCode: string;
   event?: Event;
   payment?: Payment;

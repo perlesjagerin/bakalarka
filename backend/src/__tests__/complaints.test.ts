@@ -303,10 +303,10 @@ describe('Complaint Endpoints', () => {
           reservationId: paidReservationRes.body.reservation.id
         });
 
-      // Manuálně nastavíme rezervaci jako CONFIRMED s platbou
+      // Manuálně nastavíme rezervaci jako PAID s platbou
       await prisma.reservation.update({
         where: { id: paidReservationRes.body.reservation.id },
-        data: { status: 'CONFIRMED' }
+        data: { status: 'PAID' }
       });
 
       const refundComplaintRes = await request(app)
@@ -417,7 +417,7 @@ describe('Complaint Endpoints', () => {
           ticketCount: 2
         });
 
-      expect(freeReservationRes.body.reservation.status).toBe('CONFIRMED');
+      expect(freeReservationRes.body.reservation.status).toBe('PAID');
       expect(Number(freeReservationRes.body.reservation.totalAmount)).toBe(0);
 
       // Vytvoříme reklamaci

@@ -41,8 +41,8 @@ router.get('/download/:reservationId', authenticate, async (req: Request, res: R
       });
     }
 
-    // Check if reservation is confirmed
-    if (reservation.status !== 'CONFIRMED') {
+    // Check if reservation is paid
+    if (reservation.status !== 'PAID') {
       return res.status(400).json({
         status: 'error',
         error: 'Vstupenku lze stáhnout pouze pro potvrzené rezervace',

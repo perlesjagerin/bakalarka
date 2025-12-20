@@ -64,18 +64,18 @@ describe('Ticket Download Endpoints', () => {
     });
     eventId = event.id;
     
-    // Create confirmed reservation with payment
-    const confirmedReservation = await prisma.reservation.create({
+    // Create paid reservation with payment
+    const paidReservation = await prisma.reservation.create({
       data: {
         eventId,
         userId,
         ticketCount: 2,
         totalAmount: 1000,
-        status: 'CONFIRMED',
-        reservationCode: 'TEST-CONFIRMED-001',
+        status: 'PAID',
+        reservationCode: 'TEST-PAID-001',
       },
     });
-    confirmedReservationId = confirmedReservation.id;
+    confirmedReservationId = paidReservation.id;
     
     await prisma.payment.create({
       data: {
@@ -113,7 +113,7 @@ describe('Ticket Download Endpoints', () => {
   });
 
   describe('GET /api/tickets/download/:reservationId', () => {
-    it('should download ticket PDF for confirmed reservation', async () => {
+    it('should download ticket PDF for paid reservation', async () => {
       const mockPdfBuffer = Buffer.from('mock-pdf-content');
       mockGenerateTicketPDF.mockResolvedValue(mockPdfBuffer);
       
@@ -124,11 +124,11 @@ describe('Ticket Download Endpoints', () => {
       expect(response.status).toBe(200);
       expect(response.headers['content-type']).toBe('application/pdf');
       expect(response.headers['content-disposition']).toContain('attachment');
-      expect(response.headers['content-disposition']).toContain('TEST-CONFIRMED-001');
+      expect(response.headers['content-disposition']).toContain('TEST-PAID-001');
       expect(response.body).toEqual(mockPdfBuffer);
       
       expect(mockGenerateTicketPDF).toHaveBeenCalledWith({
-        reservationCode: 'TEST-CONFIRMED-001',
+        reservationCode: 'TEST-PAID-001',
         eventTitle: 'Test Event for Tickets',
         eventDate: expect.any(String),
         eventLocation: 'Test Location',
@@ -174,7 +174,7 @@ describe('Ticket Download Endpoints', () => {
           userId: otherUser.id,
           ticketCount: 1,
           totalAmount: 500,
-          status: 'CONFIRMED',
+          status: 'PAID',
           reservationCode: 'TEST-OTHER-001',
         },
       });
@@ -231,7 +231,7 @@ describe('Ticket Download Endpoints', () => {
           userId,
           ticketCount: 1,
           totalAmount: 0,
-          status: 'CONFIRMED',
+          status: 'PAID',
           reservationCode: 'TEST-FREE-001',
         },
       });

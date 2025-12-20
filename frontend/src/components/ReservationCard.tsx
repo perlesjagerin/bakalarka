@@ -61,7 +61,7 @@ export default function ReservationCard({
 
   const isUpcoming = new Date(reservation.event.startDate) > new Date();
   const isPast = new Date(reservation.event.endDate) < new Date();
-  const canCancel = reservation.status === 'CONFIRMED' && isUpcoming;
+  const canCancel = reservation.status === 'PAID' && isUpcoming;
   const canPay = reservation.status === 'PENDING';
 
   return (
@@ -166,7 +166,7 @@ export default function ReservationCard({
                 ? (Math.round(newTicketCount * (Number(reservation.totalAmount) / reservation.ticketCount)) === 0 ? 'Zadarmo' : `${Math.round(newTicketCount * (Number(reservation.totalAmount) / reservation.ticketCount)).toLocaleString('cs-CZ')} Kč`)
                 : (Number(reservation.totalAmount) === 0 ? 'Zadarmo' : `${Number(reservation.totalAmount).toLocaleString('cs-CZ')} Kč`)}
             </p>
-            {reservation.payment && reservation.status === 'CONFIRMED' && reservation.payment.paidAt && (
+            {reservation.payment && reservation.status === 'PAID' && reservation.payment.paidAt && (
               <p className="text-sm text-gray-500">
                 Zaplaceno {new Date(reservation.payment.paidAt).toLocaleDateString('cs-CZ')}
               </p>
@@ -174,7 +174,7 @@ export default function ReservationCard({
           </div>
 
           {/* Status info */}
-          {isPast && reservation.status === 'CONFIRMED' && (
+          {isPast && reservation.status === 'PAID' && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 flex items-start gap-2 text-sm">
               <AlertCircle size={16} className="text-blue-600 mt-0.5 flex-shrink-0" />
               <p className="text-blue-800">Tato akce již proběhla.</p>
@@ -218,7 +218,7 @@ export default function ReservationCard({
                   </>
                 )}
                 
-                {reservation.status === 'CONFIRMED' && (
+                {reservation.status === 'PAID' && (
                   <>
                     <button
                       onClick={() => downloadTicket(reservation)}
