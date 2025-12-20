@@ -17,6 +17,33 @@ jobs:
       run: npm ci
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
+    - name: Setup environment variables
+      run: |
+        echo "DATABASE_URL=file:./test.db" > backend/.env
+        echo "JWT_SECRET=test-secret-key-for-ci" >> backend/.env
+        echo "STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}" >> backend/.env
+        echo "VITE_API_URL=http://localhost:3000" > frontend/.env
+        echo "VITE_STRIPE_PUBLIC_KEY=${{ secrets.VITE_STRIPE_PUBLIC_KEY }}" >> frontend/.env
+    - name: Setup database
+      run: |
+        cd backend
+        npx prisma generate
+        npx prisma migrate deploy
+        cd ..
+    - name: Build frontend
+      run: npm run build --workspace=frontend
+    - name: Start backend server
+      run: |
+        cd backend
+        npm run dev &
+        sleep 5
+        cd ..
+    - name: Start frontend server  
+      run: |
+        cd frontend
+        npm run preview &
+        sleep 5
+        cd ..
     - name: Run Playwright tests
       run: npx playwright test
     - uses: actions/upload-artifact@v4

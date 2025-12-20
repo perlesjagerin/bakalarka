@@ -30,6 +30,7 @@ export default function EventFormTickets({
               min="1"
               placeholder="100"
               className={`input pl-10 ${errors.totalTickets ? 'border-red-500' : ''}`}
+              data-testid="event-total-tickets-input"
             />
           </div>
           {errors.totalTickets && (
@@ -55,6 +56,7 @@ export default function EventFormTickets({
               step="0.01"
               placeholder="0"
               className={`input pl-10 ${errors.ticketPrice ? 'border-red-500' : ''}`}
+              data-testid="event-ticket-price-input"
             />
           </div>
           {errors.ticketPrice && (

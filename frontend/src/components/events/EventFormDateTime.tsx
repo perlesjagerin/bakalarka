@@ -22,6 +22,7 @@ export default function EventFormDateTime({ register, errors }: EventFormDateTim
             {...register('startDate')}
             type="datetime-local"
             className={`input pl-10 ${errors.startDate ? 'border-red-500' : ''}`}
+            data-testid="event-start-date-input"
           />
         </div>
         {errors.startDate && (
@@ -39,6 +40,7 @@ export default function EventFormDateTime({ register, errors }: EventFormDateTim
             {...register('endDate')}
             type="datetime-local"
             className={`input pl-10 ${errors.endDate ? 'border-red-500' : ''}`}
+            data-testid="event-end-date-input"
           />
         </div>
         {errors.endDate && (
@@ -57,6 +59,7 @@ export default function EventFormDateTime({ register, errors }: EventFormDateTim
             type="text"
             placeholder="Např. Lucerna Music Bar, Praha"
             className={`input pl-10 ${errors.location ? 'border-red-500' : ''}`}
+            data-testid="event-location-input"
           />
         </div>
         {errors.location && (

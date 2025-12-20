@@ -29,6 +29,7 @@ export default function EventFormBasicInfo({
             type="text"
             placeholder="Např. Letní hudební festival"
             className={`input pl-10 ${errors.title ? 'border-red-500' : ''}`}
+            data-testid="event-title-input"
           />
         </div>
         {errors.title && (
@@ -45,6 +46,7 @@ export default function EventFormBasicInfo({
           rows={5}
           placeholder="Podrobný popis vaší akce..."
           className={`input ${errors.description ? 'border-red-500' : ''}`}
+          data-testid="event-description-input"
         />
         {errors.description && (
           <p className="text-red-600 text-sm mt-1">{errors.description.message}</p>
@@ -58,6 +60,7 @@ export default function EventFormBasicInfo({
         <select
           {...register('category')}
           className={`input ${errors.category ? 'border-red-500' : ''}`}
+          data-testid="event-category-select"
         >
           <option value="">Vyberte kategorii</option>
           {EVENT_CATEGORIES.map((cat) => (

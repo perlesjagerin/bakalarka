@@ -33,7 +33,7 @@ test.describe('Create Event Flow', () => {
   });
 
   test.skip('should display create event form', async ({ page }) => {
-    // Skipped: Issue with auth state after registration in test environment
+    // TODO: Update test after frontend refactoring - needs proper navigation flow
     await registerUser(
       page,
       organizerEmail,
@@ -58,7 +58,7 @@ test.describe('Create Event Flow', () => {
   });
 
   test.skip('should create a new event successfully', async ({ page }) => {
-    // Skipped: Issue with auth state after registration in test environment
+    // TODO: Update test after frontend refactoring - needs proper navigation flow
     await registerUser(
       page,
       organizerEmail,
@@ -102,7 +102,7 @@ test.describe('Create Event Flow', () => {
   });
 
   test.skip('should validate required fields', async ({ page }) => {
-    // Skipped: Issue with auth state after registration in test environment
+    // TODO: Update test after frontend refactoring - needs proper navigation flow
     await registerUser(
       page,
       organizerEmail,
