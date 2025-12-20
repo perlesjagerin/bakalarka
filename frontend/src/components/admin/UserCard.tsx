@@ -57,7 +57,7 @@ export default function UserCard({ user, onToggleStatus }: UserCardProps) {
             </div>
             <div className="flex items-center gap-2">
               <Calendar size={16} />
-              <span>Registrován: {new Date(user.createdAt).toLocaleDateString('cs-CZ')}</span>
+              <span>Registrován: {formatDate(user.createdAt)}</span>
             </div>
           </div>
         </div>

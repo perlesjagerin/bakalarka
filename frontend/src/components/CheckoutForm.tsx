@@ -98,7 +98,7 @@ export default function CheckoutForm({ reservationId, amount }: CheckoutFormProp
             Zpracovávám platbu...
           </span>
         ) : (
-          `Zaplatit ${Number(amount).toLocaleString('cs-CZ')} Kč`
+          `Zaplatit ${formatPrice(Number(amount))}`
         )}
       </button>
     </form>

@@ -31,7 +31,7 @@ export default function PaymentSummary({ reservation }: PaymentSummaryProps) {
         
         <div className="flex justify-between">
           <span className="text-gray-600">Datum:</span>
-          <span>{new Date(reservation.event.startDate).toLocaleDateString('cs-CZ')}</span>
+          <span>{formatDate(reservation.event.startDate)}</span>
         </div>
         
         <div className="flex justify-between">
@@ -49,7 +49,7 @@ export default function PaymentSummary({ reservation }: PaymentSummaryProps) {
         <div className="flex justify-between items-center">
           <span className="text-xl font-bold">Celková cena:</span>
           <span className="text-2xl font-bold text-primary-600">
-            {Number(reservation.totalAmount) === 0 ? 'Zadarmo' : `${Number(reservation.totalAmount).toLocaleString('cs-CZ')} Kč`}
+            {formatPrice(Number(reservation.totalAmount))}
           </span>
         </div>
       </div>

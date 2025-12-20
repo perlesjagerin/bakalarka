@@ -87,7 +87,7 @@ export default function ComplaintDetailActions({
                 className="w-4 h-4 text-primary-600 rounded focus:ring-2 focus:ring-primary-500"
               />
               <span className="text-sm">
-                Provést automatickou refundaci ({Number(complaint.reservation.totalAmount).toLocaleString('cs-CZ')} Kč)
+                Provést automatickou refundaci ({formatPrice(Number(complaint.reservation.totalAmount))})
               </span>
             </label>
           </div>
@@ -200,7 +200,7 @@ export default function ComplaintDetailActions({
                   className="w-4 h-4 text-primary-600 rounded focus:ring-2 focus:ring-primary-500"
                 />
                 <span className="text-sm font-medium">
-                  Provést refundaci ({Number(complaint.reservation.totalAmount).toLocaleString('cs-CZ')} Kč)
+                  Provést refundaci ({formatPrice(Number(complaint.reservation.totalAmount))})
                 </span>
               </label>
               {refundCheckbox && (

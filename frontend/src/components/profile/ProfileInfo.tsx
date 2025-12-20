@@ -1,5 +1,6 @@
 import { User, Mail, Shield, Calendar } from 'lucide-react';
 import StatusBadge from '../common/StatusBadge';
+import { formatDateLong } from '../../utils/formatters';
 
 interface ProfileInfoProps {
   user: {
@@ -47,11 +48,7 @@ export default function ProfileInfo({ user }: ProfileInfoProps) {
         <div>
           <p className="text-sm text-gray-600">Člen od</p>
           <p className="font-medium text-gray-900">
-            {new Date(user.createdAt).toLocaleDateString('cs-CZ', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-            })}
+            {formatDateLong(user.createdAt)}
           </p>
         </div>
       </div>

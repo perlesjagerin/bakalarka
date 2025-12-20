@@ -49,7 +49,7 @@ export default function EventReservation({
             <div className="mb-6">
               <p className="text-gray-600 mb-2">Cena vstupenky</p>
               <p className="text-3xl font-bold text-gray-900">
-                {Number(event.ticketPrice) === 0 ? 'Zadarmo' : `${Number(event.ticketPrice).toLocaleString('cs-CZ')} Kč`}
+                {formatPrice(Number(event.ticketPrice))}
               </p>
             </div>
 
@@ -89,11 +89,11 @@ export default function EventReservation({
             <div className="bg-gray-50 rounded-lg p-4 mb-6">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-gray-600">Vstupenky ({ticketCount}x)</span>
-                <span className="font-medium">{Number(event.ticketPrice) === 0 ? 'Zadarmo' : `${(Number(event.ticketPrice) * ticketCount).toLocaleString('cs-CZ')} Kč`}</span>
+                <span className="font-medium">{formatPrice(Number(event.ticketPrice) * ticketCount)}</span>
               </div>
               <div className="border-t pt-2 flex justify-between items-center">
                 <span className="font-bold text-lg">Celkem</span>
-                <span className="font-bold text-2xl text-primary-600">{Number(totalPrice) === 0 ? 'Zadarmo' : `${Number(totalPrice).toLocaleString('cs-CZ')} Kč`}</span>
+                <span className="font-bold text-2xl text-primary-600">{formatPrice(Number(totalPrice))}</span>
               </div>
             </div>
 

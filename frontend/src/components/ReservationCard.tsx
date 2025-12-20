@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Calendar, MapPin, Ticket, Download, X, AlertCircle, Edit } from 'lucide-react';
 import { getCategoryStyle } from '../utils/eventDefaults';
 import StatusBadge from './common/StatusBadge';
+import { formatDateLong, formatDateTime, formatPrice } from '../utils/formatters';
+
 
 interface Event {
   id: string;
@@ -102,14 +104,7 @@ export default function ReservationCard({
             <div className="flex items-center gap-2 text-gray-600">
               <Calendar size={16} />
               <div>
-                <p className="font-medium">
-                  {new Date(reservation.event.startDate).toLocaleDateString('cs-CZ', {
-                    weekday: 'short',
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                  })}
-                </p>
+                <p className="font-medium">{formatDateLong(reservation.event.startDate)}</p>
                 <p className="text-xs">
                   {new Date(reservation.event.startDate).toLocaleTimeString('cs-CZ', {
                     hour: '2-digit',
@@ -162,12 +157,12 @@ export default function ReservationCard({
           <div className="mb-4">
             <p className="text-2xl font-bold text-primary-600">
               {editingReservationId === reservation.id 
-                ? (Math.round(newTicketCount * (Number(reservation.totalAmount) / reservation.ticketCount)) === 0 ? 'Zadarmo' : `${Math.round(newTicketCount * (Number(reservation.totalAmount) / reservation.ticketCount)).toLocaleString('cs-CZ')} Kč`)
-                : (Number(reservation.totalAmount) === 0 ? 'Zadarmo' : `${Number(reservation.totalAmount).toLocaleString('cs-CZ')} Kč`)}
+                ? formatPrice(Math.round(newTicketCount * (Number(reservation.totalAmount) / reservation.ticketCount)))
+                : formatPrice(Number(reservation.totalAmount))}
             </p>
             {reservation.payment && reservation.status === 'PAID' && reservation.payment.paidAt && (
               <p className="text-sm text-gray-500">
-                Zaplaceno {new Date(reservation.payment.paidAt).toLocaleDateString('cs-CZ')}
+                Zaplaceno {formatDateTime(reservation.payment.paidAt)}
               </p>
             )}
           </div>

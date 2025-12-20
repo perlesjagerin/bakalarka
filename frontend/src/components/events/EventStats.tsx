@@ -44,7 +44,7 @@ export default function EventStats({ events }: EventStatsProps) {
       <div className="card">
         <p className="text-gray-600 mb-1">Celkový příjem</p>
         <p className="text-3xl font-bold text-primary-600">
-          {stats.totalRevenue.toLocaleString('cs-CZ')} Kč
+          {formatPriceStrict(stats.totalRevenue)}
         </p>
       </div>
     </div>

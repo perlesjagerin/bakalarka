@@ -79,12 +79,7 @@ export default function ReservationDetails({
             <Calendar size={20} />
             <div>
               <p className="font-medium text-gray-900">
-                {new Date(reservation.event.startDate).toLocaleDateString('cs-CZ', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
+                {formatDateLong(reservation.event.startDate)}
               </p>
               <p className="text-sm">
                 {new Date(reservation.event.startDate).toLocaleTimeString('cs-CZ', {
@@ -120,16 +115,14 @@ export default function ReservationDetails({
             <div className="flex justify-between">
               <span className="text-gray-600">Částka:</span>
               <span className="font-medium">
-                {Number(reservation.payment.amount) === 0
-                  ? 'Zadarmo'
-                  : `${Number(reservation.payment.amount).toLocaleString('cs-CZ')} Kč`}
+                {formatPrice(Number(reservation.payment.amount))}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Zaplaceno:</span>
               <span className="font-medium">
                 {reservation.payment.paidAt
-                  ? new Date(reservation.payment.paidAt).toLocaleString('cs-CZ')
+                  ? formatDateTime(reservation.payment.paidAt)
                   : 'Právě teď'}
               </span>
             </div>

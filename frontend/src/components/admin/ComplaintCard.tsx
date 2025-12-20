@@ -1,6 +1,7 @@
 import { Calendar, User, FileText } from 'lucide-react';
 import { Complaint } from '../../types/complaint';
 import StatusBadge from '../common/StatusBadge';
+import { formatDate } from '../../utils/formatters';
 
 interface ComplaintCardProps {
   complaint: Complaint;
@@ -42,7 +43,7 @@ export default function ComplaintCard({
         
         <div className="flex items-center gap-2 text-gray-600">
           <Calendar size={16} />
-          <span>{new Date(complaint.createdAt).toLocaleDateString('cs-CZ')}</span>
+          <span>{formatDate(complaint.createdAt)}</span>
         </div>
 
         <div className="flex items-center gap-2 text-gray-600">

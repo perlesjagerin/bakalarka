@@ -32,7 +32,7 @@ export default function ReservationStats({ reservations }: ReservationStatsProps
       <div className="card">
         <p className="text-gray-600 mb-1">Celková útrata</p>
         <p className="text-3xl font-bold text-primary-600">
-          {totalSpent.toLocaleString('cs-CZ')} Kč
+          {formatPriceStrict(totalSpent)}
         </p>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { Complaint } from '../../types/complaint';
 import StatusBadge from '../common/StatusBadge';
+import { formatPrice } from '../../utils/formatters';
 
 interface ComplaintDetailInfoProps {
   complaint: Complaint;
@@ -41,7 +42,7 @@ export default function ComplaintDetailInfo({
             <span className="font-semibold">
               {Number(complaint.reservation.totalAmount) === 0 
                 ? 'Zadarmo' 
-                : `${Number(complaint.reservation.totalAmount).toLocaleString('cs-CZ')} Kč`}
+                : formatPrice(Number(complaint.reservation.totalAmount))}
             </span>
           </div>
         </div>

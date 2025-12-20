@@ -4,6 +4,8 @@ import { Calendar, MapPin, Ticket } from 'lucide-react';
 import { format } from 'date-fns';
 import { cs } from 'date-fns/locale';
 import { getCategoryStyle } from '../utils/eventDefaults';
+import { formatPrice } from '../utils/formatters';
+
 
 interface Event {
   id: string;
@@ -81,7 +83,7 @@ export default function EventCard({ event }: EventCardProps) {
 
         <div className="flex items-center justify-between pt-3 border-t">
           <span className="text-2xl font-bold text-primary-600">
-            {Number(event.ticketPrice) === 0 ? 'Zadarmo' : `${Number(event.ticketPrice).toLocaleString('cs-CZ')} Kč`}
+            {formatPrice(Number(event.ticketPrice))}
           </span>
           <button className="btn-primary">
             Zobrazit detail
