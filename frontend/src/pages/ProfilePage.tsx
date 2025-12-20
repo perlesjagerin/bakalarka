@@ -7,7 +7,6 @@ import { useProfile } from '../hooks/useProfile';
 import ProfileInfo from '../components/profile/ProfileInfo';
 import ProfileEditForm, { profileSchema, ProfileFormData } from '../components/profile/ProfileEditForm';
 import PasswordForm, { passwordSchema, PasswordFormData } from '../components/profile/PasswordForm';
-import StatusBadge from '../components/common/StatusBadge';
 
 export default function ProfilePage() {
   const { user } = useAuthStore();
@@ -107,7 +106,7 @@ export default function ProfilePage() {
               />
             </form>
           ) : (
-            <ProfileInfo user={user} />
+            <ProfileInfo user={user!} />
           )}
         </div>
 

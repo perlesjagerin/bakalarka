@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { formatPrice } from '../../utils/formatters';
 
 interface Event {
   status: string;

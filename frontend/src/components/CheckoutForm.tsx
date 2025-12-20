@@ -6,6 +6,7 @@ import {
   PaymentElement,
 } from '@stripe/react-stripe-js';
 import toast from 'react-hot-toast';
+import { formatPrice } from '../utils/formatters';
 
 interface CheckoutFormProps {
   reservationId: string;

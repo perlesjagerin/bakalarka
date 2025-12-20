@@ -56,7 +56,7 @@ export const usePayment = (reservationId: string | undefined) => {
       });
       
       setClientSecret(paymentResponse.data.clientSecret);
-    } catch (error) {
+    } catch (error: any) {
       const errorMsg = error.response?.data?.message || ERROR_MESSAGES.LOAD_PAYMENT_ERROR;
       setError(errorMsg);
       showErrorToast(error, ERROR_MESSAGES.LOAD_PAYMENT_ERROR);

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../lib/axios';
-import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '../constants/messages';
+import { ERROR_MESSAGES } from '../constants/messages';
 import { showErrorToast, showSuccessToast } from '../utils/errorHandling';
 
 interface User {
