@@ -4,28 +4,9 @@ import ReservationCard from '../components/ReservationCard';
 import ReservationStats from '../components/reservations/ReservationStats.tsx';
 import ReservationFilters from '../components/reservations/ReservationFilters.tsx';
 import { useMyReservations } from '../hooks/useMyReservations';
+import StatusBadge from '../components/common/StatusBadge';
 
 type FilterType = 'all' | 'PENDING' | 'PAID' | 'CANCELLED' | 'REFUNDED';
-
-const getStatusBadge = (status: string) => {
-  const badges = {
-    PENDING: 'bg-yellow-100 text-yellow-800',
-    PAID: 'bg-green-100 text-green-800',
-    CANCELLED: 'bg-red-100 text-red-800',
-    REFUNDED: 'bg-blue-100 text-blue-800',
-  };
-  const labels = {
-    PENDING: 'Čeká na platbu',
-    PAID: 'Zaplaceno',
-    CANCELLED: 'Zrušeno',
-    REFUNDED: 'Refundováno',
-  };
-  return (
-    <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${badges[status as keyof typeof badges]}`}>
-      {labels[status as keyof typeof labels]}
-    </span>
-  );
-};
 
 export default function MyReservationsPage() {
   const [filter, setFilter] = useState<FilterType>('all');
@@ -88,7 +69,6 @@ export default function MyReservationsPage() {
               key={reservation.id}
               reservation={reservation}
               onCancel={handleCancelReservation}
-              getStatusBadge={getStatusBadge}
               downloadTicket={downloadTicket}
               editingReservationId={editingReservationId}
               newTicketCount={newTicketCount}

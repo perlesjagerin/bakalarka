@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Shield, Edit2 } from 'lucide-react';
+import { Edit2 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useProfile } from '../hooks/useProfile';
 import ProfileInfo from '../components/profile/ProfileInfo';
 import ProfileEditForm, { profileSchema, ProfileFormData } from '../components/profile/ProfileEditForm';
 import PasswordForm, { passwordSchema, PasswordFormData } from '../components/profile/PasswordForm';
+import StatusBadge from '../components/common/StatusBadge';
 
 export default function ProfilePage() {
   const { user } = useAuthStore();
@@ -60,25 +61,6 @@ export default function ProfilePage() {
     }
   };
 
-  const getRoleBadge = (role: string) => {
-    const badges = {
-      USER: 'bg-blue-100 text-blue-800',
-      ORGANIZER: 'bg-purple-100 text-purple-800',
-      ADMIN: 'bg-red-100 text-red-800',
-    };
-    const labels = {
-      USER: 'Uživatel',
-      ORGANIZER: 'Organizátor',
-      ADMIN: 'Administrátor',
-    };
-    return (
-      <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${badges[role as keyof typeof badges]}`}>
-        <Shield size={16} />
-        {labels[role as keyof typeof labels]}
-      </span>
-    );
-  };
-
   if (!user) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -125,7 +107,7 @@ export default function ProfilePage() {
               />
             </form>
           ) : (
-            <ProfileInfo user={user} getRoleBadge={getRoleBadge} />
+            <ProfileInfo user={user} />
           )}
         </div>
 

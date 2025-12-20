@@ -6,28 +6,9 @@ import EventStats from '../components/events/EventStats.tsx';
 import EventFilters from '../components/events/EventFilters.tsx';
 import { useMyEvents } from '../hooks/useMyEvents';
 import { useAuthStore } from '../store/authStore';
+import StatusBadge from '../components/common/StatusBadge';
 
 type FilterType = 'all' | 'PUBLISHED' | 'DRAFT' | 'COMPLETED' | 'CANCELLED';
-
-const getStatusBadge = (status: string) => {
-  const badges = {
-    DRAFT: 'bg-gray-100 text-gray-800',
-    PUBLISHED: 'bg-green-100 text-green-800',
-    CANCELLED: 'bg-red-100 text-red-800',
-    COMPLETED: 'bg-blue-100 text-blue-800',
-  };
-  const labels = {
-    DRAFT: 'Koncept',
-    PUBLISHED: 'Publikováno',
-    CANCELLED: 'Zrušeno',
-    COMPLETED: 'Proběhlo',
-  };
-  return (
-    <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${badges[status as keyof typeof badges]}`}>
-      {labels[status as keyof typeof labels]}
-    </span>
-  );
-};
 
 export default function MyEventsPage() {
   const { user } = useAuthStore();
@@ -102,7 +83,6 @@ export default function MyEventsPage() {
               userRole={user?.role}
               onDelete={handleDeleteEvent}
               onStatusChange={handleStatusChange}
-              getStatusBadge={getStatusBadge}
             />
           ))}
         </div>

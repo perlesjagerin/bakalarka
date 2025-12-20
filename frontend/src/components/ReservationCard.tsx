@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, MapPin, Ticket, Download, X, AlertCircle, Edit } from 'lucide-react';
 import { getCategoryStyle } from '../utils/eventDefaults';
+import StatusBadge from './common/StatusBadge';
 
 interface Event {
   id: string;
@@ -34,7 +35,6 @@ interface Reservation {
 interface ReservationCardProps {
   reservation: Reservation;
   onCancel: (id: string) => void;
-  getStatusBadge: (status: string) => JSX.Element;
   downloadTicket: (reservation: any) => void;
   editingReservationId: string | null;
   newTicketCount: number;
@@ -47,7 +47,6 @@ interface ReservationCardProps {
 export default function ReservationCard({ 
   reservation, 
   onCancel, 
-  getStatusBadge, 
   downloadTicket,
   editingReservationId,
   newTicketCount,
@@ -95,7 +94,7 @@ export default function ReservationCard({
               >
                 {reservation.event.title}
               </Link>
-              {getStatusBadge(reservation.status)}
+              <StatusBadge status={reservation.status as any} type="reservation" />
             </div>
           </div>
 

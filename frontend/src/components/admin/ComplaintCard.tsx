@@ -1,18 +1,17 @@
 import { Calendar, User, FileText } from 'lucide-react';
 import { Complaint } from '../../types/complaint';
+import StatusBadge from '../common/StatusBadge';
 
 interface ComplaintCardProps {
   complaint: Complaint;
   isSelected: boolean;
   onSelect: () => void;
-  getStatusBadge: (status: string) => JSX.Element;
 }
 
 export default function ComplaintCard({ 
   complaint, 
   isSelected, 
-  onSelect,
-  getStatusBadge 
+  onSelect
 }: ComplaintCardProps) {
   return (
     <div
@@ -32,7 +31,7 @@ export default function ComplaintCard({
             {complaint.reservation.event.title}
           </h3>
         </div>
-        {getStatusBadge(complaint.status)}
+        <StatusBadge status={complaint.status as any} type="complaint" />
       </div>
 
       <div className="space-y-2 text-sm">

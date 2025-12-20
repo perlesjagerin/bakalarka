@@ -5,6 +5,7 @@ import ComplaintCard from '../components/admin/ComplaintCard';
 import ComplaintStats from '../components/admin/ComplaintStats';
 import ComplaintFilters from '../components/admin/ComplaintFilters';
 import ComplaintDetail from '../components/admin/ComplaintDetail';
+import StatusBadge from '../components/common/StatusBadge';
 
 type FilterType = 'all' | 'SUBMITTED' | 'IN_REVIEW' | 'REJECTED' | 'RESOLVED';
 
@@ -79,25 +80,7 @@ export default function AdminComplaintsPage() {
     ? complaints 
     : complaints.filter(c => c.status === filter);
 
-  const getStatusBadge = (status: string) => {
-    const badges = {
-      SUBMITTED: 'bg-yellow-100 text-yellow-800',
-      IN_REVIEW: 'bg-blue-100 text-blue-800',
-      REJECTED: 'bg-red-100 text-red-800',
-      RESOLVED: 'bg-green-100 text-green-800',
-    };
-    const labels = {
-      SUBMITTED: 'Čeká',
-      IN_REVIEW: 'V řešení',
-      REJECTED: 'Zamítnuto',
-      RESOLVED: 'Vyřešeno',
-    };
-    return (
-      <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${badges[status as keyof typeof badges]}`}>
-        {labels[status as keyof typeof labels]}
-      </span>
-    );
-  };
+  const filteredComplaints = filter === 'all' ? complaints : complaints.filter((c) => c.status === filter);
 
   if (loading) {
     return (
@@ -141,7 +124,6 @@ export default function AdminComplaintsPage() {
                 complaint={complaint}
                 isSelected={selectedComplaint?.id === complaint.id}
                 onSelect={() => openComplaintDetail(complaint)}
-                getStatusBadge={getStatusBadge}
               />
             ))
           )}
@@ -163,7 +145,6 @@ export default function AdminComplaintsPage() {
             onReviewComplaint={handleReview}
             onResolveComplaint={handleResolve}
             onUpdateComplaint={handleUpdate}
-            getStatusBadge={getStatusBadge}
           />
         </div>
       </div>

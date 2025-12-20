@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, MapPin, Users, DollarSign, Edit, Trash2, Eye } from 'lucide-react';
 import { getCategoryStyle } from '../utils/eventDefaults';
+import StatusBadge from './common/StatusBadge';
 
 interface Event {
   id: string;
@@ -29,10 +30,9 @@ interface MyEventCardProps {
   userRole?: string;
   onDelete: (id: string) => void;
   onStatusChange: (id: string, status: string) => void;
-  getStatusBadge: (status: string) => JSX.Element;
 }
 
-export default function MyEventCard({ event, userRole, onDelete, onStatusChange, getStatusBadge }: MyEventCardProps) {
+export default function MyEventCard({ event, userRole, onDelete, onStatusChange }: MyEventCardProps) {
   const [imageError, setImageError] = useState(false);
   const categoryStyle = getCategoryStyle(event.category);
   
@@ -96,7 +96,7 @@ export default function MyEventCard({ event, userRole, onDelete, onStatusChange,
                   Organizátor: {event.organizer.firstName} {event.organizer.lastName} ({event.organizer.email})
                 </p>
               )}
-              {getStatusBadge(event.status)}
+              <StatusBadge status={event.status as any} type="event" />
             </div>
           </div>
 

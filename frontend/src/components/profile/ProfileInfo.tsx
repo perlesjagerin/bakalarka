@@ -1,4 +1,5 @@
 import { User, Mail, Shield, Calendar } from 'lucide-react';
+import StatusBadge from '../common/StatusBadge';
 
 interface ProfileInfoProps {
   user: {
@@ -8,10 +9,9 @@ interface ProfileInfoProps {
     role: string;
     createdAt: string;
   };
-  getRoleBadge: (role: string) => JSX.Element;
 }
 
-export default function ProfileInfo({ user, getRoleBadge }: ProfileInfoProps) {
+export default function ProfileInfo({ user }: ProfileInfoProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
@@ -36,7 +36,9 @@ export default function ProfileInfo({ user, getRoleBadge }: ProfileInfoProps) {
         <Shield className="text-gray-400" size={20} />
         <div>
           <p className="text-sm text-gray-600">Role</p>
-          <div className="mt-1">{getRoleBadge(user.role)}</div>
+          <div className="mt-1">
+            <StatusBadge status={user.role as any} type="role" icon={<Shield size={16} />} />
+          </div>
         </div>
       </div>
 

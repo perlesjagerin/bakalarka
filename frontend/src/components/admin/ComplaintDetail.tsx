@@ -17,7 +17,6 @@ interface ComplaintDetailProps {
   onReviewComplaint: (complaintId: string, status: 'IN_REVIEW' | 'REJECTED') => void;
   onResolveComplaint: (complaintId: string) => void;
   onUpdateComplaint: (complaintId: string) => void;
-  getStatusBadge: (status: string) => JSX.Element;
 }
 
 export default function ComplaintDetail({
@@ -34,7 +33,6 @@ export default function ComplaintDetail({
   onReviewComplaint,
   onResolveComplaint,
   onUpdateComplaint,
-  getStatusBadge,
 }: ComplaintDetailProps) {
   if (!complaint) {
     return (
@@ -53,7 +51,6 @@ export default function ComplaintDetail({
 
       <ComplaintDetailInfo 
         complaint={complaint} 
-        getStatusBadge={getStatusBadge}
       />
 
       <ComplaintDetailActions

@@ -1,19 +1,18 @@
 import { Complaint } from '../../types/complaint';
+import StatusBadge from '../common/StatusBadge';
 
 interface ComplaintDetailInfoProps {
   complaint: Complaint;
-  getStatusBadge: (status: string) => JSX.Element;
 }
 
 export default function ComplaintDetailInfo({ 
-  complaint, 
-  getStatusBadge 
+  complaint
 }: ComplaintDetailInfoProps) {
   return (
     <>
       {/* Status */}
       <div className="mb-6">
-        {getStatusBadge(complaint.status)}
+        <StatusBadge status={complaint.status as any} type="complaint" />
         {complaint.refundIssued && (
           <span className="ml-2 inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
             Refundováno
