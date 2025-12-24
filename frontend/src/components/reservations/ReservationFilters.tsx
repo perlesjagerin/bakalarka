@@ -1,4 +1,4 @@
-type FilterType = 'all' | 'PENDING' | 'PAID' | 'CANCELLED' | 'REFUNDED';
+type FilterType = 'all' | 'PENDING' | 'CONFIRMED' | 'PAID' | 'CANCELLED' | 'REFUNDED';
 
 interface ReservationFiltersProps {
   filter: FilterType;
@@ -9,6 +9,7 @@ export default function ReservationFilters({ filter, setFilter }: ReservationFil
   const filters: Array<{ value: FilterType; label: string }> = [
     { value: 'all', label: 'Vše' },
     { value: 'PENDING', label: 'Čeká na platbu' },
+    { value: 'CONFIRMED', label: 'Potvrzeno' },
     { value: 'PAID', label: 'Zaplaceno' },
     { value: 'CANCELLED', label: 'Zrušené' },
     { value: 'REFUNDED', label: 'Refundováno' },

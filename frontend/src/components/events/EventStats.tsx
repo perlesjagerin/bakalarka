@@ -6,13 +6,18 @@ interface Event {
   totalTickets: number;
   availableTickets: number;
   ticketPrice: number;
+  confirmedRevenue?: number;
+  confirmedTicketsSold?: number;
 }
 
 interface EventStatsProps {
   events: Event[];
+  userRole?: string;
 }
 
-export default function EventStats({ events }: EventStatsProps) {
+export default function EventStats({ events, userRole }: EventStatsProps) {
+  console.log('EventStats received events:', events.length);
+  
   const stats = {
     total: events.length,
     published: events.filter(e => e.status === 'PUBLISHED').length,
@@ -20,10 +25,14 @@ export default function EventStats({ events }: EventStatsProps) {
     completed: events.filter(e => e.status === 'COMPLETED').length,
     cancelled: events.filter(e => e.status === 'CANCELLED').length,
     totalRevenue: events.reduce((sum, e) => {
-      const sold = Math.max(0, e.totalTickets - e.availableTickets);
-      return sum + (sold * e.ticketPrice);
+      // Používáme confirmedRevenue z backendu (pouze PAID a CONFIRMED rezervace)
+      const revenue = Number(e.confirmedRevenue) || 0;
+      console.log(`EventStats: ${e.title} -> confirmedRevenue: ${e.confirmedRevenue}, revenue: ${revenue}, sum: ${sum + revenue}`);
+      return sum + revenue;
     }, 0),
   };
+
+  console.log('EventStats - Final totalRevenue:', stats.totalRevenue);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -44,7 +53,7 @@ export default function EventStats({ events }: EventStatsProps) {
         <p className="text-3xl font-bold text-blue-600">{stats.completed}</p>
       </div>
       <div className="card">
-        <p className="text-gray-600 mb-1">Celkový příjem</p>
+        <p className="text-gray-600 mb-1">{userRole === 'ADMIN' ? 'Celkový příjem všech akcí' : 'Celkový příjem'}</p>
         <p className="text-3xl font-bold text-primary-600">
           {formatPriceStrict(stats.totalRevenue)}
         </p>

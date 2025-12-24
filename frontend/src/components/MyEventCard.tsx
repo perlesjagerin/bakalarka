@@ -17,6 +17,8 @@ interface Event {
   availableTickets: number;
   ticketPrice: number;
   imageUrl?: string | null;
+  confirmedRevenue?: number;
+  confirmedTicketsSold?: number;
   organizer?: {
     id: string;
     firstName: string;
@@ -36,9 +38,12 @@ function MyEventCard({ event, userRole, onDelete, onStatusChange }: MyEventCardP
   const [imageError, setImageError] = useState(false);
   const categoryStyle = getCategoryStyle(event.category);
   
-  const soldTickets = Math.max(0, event.totalTickets - event.availableTickets);
+  // Používáme confirmedTicketsSold z backendu (pouze PAID a CONFIRMED rezervace)
+  const soldTickets = event.confirmedTicketsSold ?? Math.max(0, event.totalTickets - event.availableTickets);
   const soldPercentage = event.totalTickets > 0 ? (soldTickets / event.totalTickets) * 100 : 0;
-  const revenue = soldTickets * event.ticketPrice;
+  
+  // Používáme confirmedRevenue z backendu (pouze PAID a CONFIRMED rezervace)
+  const revenue = event.confirmedRevenue ?? (soldTickets * event.ticketPrice);
 
   // Určit dostupné stavy podle aktuálního stavu
   const getAvailableStatusTransitions = () => {

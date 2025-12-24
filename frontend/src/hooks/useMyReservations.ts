@@ -8,7 +8,7 @@ interface Reservation {
   reservationCode: string;
   ticketCount: number;
   totalAmount: number;
-  status: 'PENDING' | 'PAID' | 'CANCELLED' | 'REFUNDED';
+  status: 'PENDING' | 'CONFIRMED' | 'PAID' | 'CANCELLED' | 'REFUNDED';
   createdAt: string;
   event: {
     id: string;
@@ -89,8 +89,11 @@ export const useMyReservations = () => {
   };
 
   const handleEditReservation = (reservation: Reservation) => {
+    console.log('handleEditReservation called with:', reservation.id);
+    console.log('Setting editingReservationId to:', reservation.id);
     setEditingReservationId(reservation.id);
     setNewTicketCount(reservation.ticketCount);
+    console.log('State updated, editingReservationId should now be:', reservation.id);
   };
 
   const handleUpdateReservation = async (reservationId: string) => {

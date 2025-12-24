@@ -73,8 +73,8 @@ class ReservationService {
     // Calculate total amount
     const totalAmount = Number(event.ticketPrice) * ticketCount;
     
-    // Pro akce zdarma nastavíme status rovnou na PAID
-    const reservationStatus = totalAmount === 0 ? 'PAID' : 'PENDING';
+    // Pro akce zdarma nastavíme status rovnou na CONFIRMED místo PAID
+    const reservationStatus = totalAmount === 0 ? 'CONFIRMED' : 'PENDING';
 
     // Create reservation in transaction
     const reservation = await prisma.$transaction(async (tx: any) => {
@@ -161,7 +161,8 @@ class ReservationService {
             endDate: true,
             ticketPrice: true,
             category: true,
-            status: true
+            status: true,
+            availableTickets: true
           }
         }
       },

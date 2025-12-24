@@ -417,7 +417,7 @@ describe('Complaint Endpoints', () => {
           ticketCount: 2
         });
 
-      expect(freeReservationRes.body.reservation.status).toBe('PAID');
+      expect(freeReservationRes.body.reservation.status).toBe('CONFIRMED');
       expect(Number(freeReservationRes.body.reservation.totalAmount)).toBe(0);
 
       // Vytvoříme reklamaci

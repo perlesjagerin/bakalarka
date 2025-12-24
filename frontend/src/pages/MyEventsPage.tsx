@@ -53,7 +53,7 @@ export default function MyEventsPage() {
         </Link>
       </div>
 
-      <EventStats events={events} />
+      <EventStats events={events} userRole={user?.role} />
 
       <EventFilters filter={filter} setFilter={setFilter} />
 

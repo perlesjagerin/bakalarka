@@ -16,6 +16,8 @@ interface Event {
   ticketPrice: number;
   imageUrl?: string;
   status: 'DRAFT' | 'PUBLISHED' | 'CANCELLED' | 'COMPLETED';
+  confirmedRevenue?: number;
+  confirmedTicketsSold?: number;
   organizer?: {
     id: string;
     firstName: string;
@@ -38,6 +40,16 @@ export const useMyEvents = () => {
   const fetchMyEvents = async () => {
     try {
       const response = await api.get('/events/my');
+      console.log('Raw events from API:', response.data.events);
+      
+      // Detailní log každé akce
+      response.data.events.forEach((event: any) => {
+        console.log(`Event: ${event.title}`);
+        console.log(`  - ticketPrice: ${event.ticketPrice} (${typeof event.ticketPrice})`);
+        console.log(`  - confirmedRevenue: ${event.confirmedRevenue} (${typeof event.confirmedRevenue})`);
+        console.log(`  - confirmedTicketsSold: ${event.confirmedTicketsSold}`);
+      });
+      
       setEvents(response.data.events);
     } catch (error) {
       showErrorToast(error, ERROR_MESSAGES.LOAD_EVENTS_ERROR);

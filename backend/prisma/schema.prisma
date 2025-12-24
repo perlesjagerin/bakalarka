@@ -25,6 +25,7 @@ enum EventStatus {
 
 enum ReservationStatus {
   PENDING
+  CONFIRMED
   PAID
   CANCELLED
   REFUNDED

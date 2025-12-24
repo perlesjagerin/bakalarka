@@ -12,13 +12,12 @@
 - OK - text v pdf špatně vygenerován, jsou tam neznámé znaky (opraveno - použití Arial TTF s plnou podporou Unicode)
 - OK - jak řešit refundaci zadarmo akcí (automaticky - Stripe refund se volá pouze při amount > 0, jinak jen zrušení rezervace)
 
-- počet vstupenek nelze upravit
-- zadarmo akce mají mít jiný status než zaplaceno
-- admin celkový příjem?
-- čeká na platbu nedávej do celkového příjmu. Až je to zaplacený
-- kategorie akce hodit na dropdown?
-- profil - Invalid date
-- chyba při stahování vstupenky
+- OK - počet vstupenek nelze upravit
+- OK - zadarmo akce mají mít jiný status než zaplaceno
+- OK - admin celkový příjem?
+- OK - "čeká na platbu nedávej" do celkového příjmu. Až je to zaplacený, tak to hoď do příjmu
+- OK - profil uživatele - Invalid date
+- OK - chyba při stahování vstupenky
 
 stripe listen --forward-to localhost:3001/api/payments/webhook
 npm run prisma:seed

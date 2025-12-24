@@ -1,7 +1,7 @@
 @startuml
-skinparam handwritten false
 title Diagram případů užití - Rezervační systém
 
+skinparam linetype polyline
 skinparam actorStyle awesome
 skinparam packageStyle rectangle
 skinparam usecase {

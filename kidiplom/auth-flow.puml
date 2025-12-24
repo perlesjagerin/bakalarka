@@ -1,9 +1,9 @@
 @startuml
 skinparam backgroundColor #FEFEFE
-skinparam handwritten false
 skinparam defaultFontSize 11
 skinparam arrowColor #2C3E50
 skinparam actorBorderColor #2C3E50
+skinparam linetype polyline
 
 title Proces autentizace pomocí JWT
 

@@ -1,238 +1,168 @@
 @startuml
-skinparam handwritten false
 title Diagram tříd - Backend architektura
 
+skinparam packageStyle rectangle
+skinparam linetype polyline
+skinparam class {
+    BackgroundColor LightBlue
+    BorderColor DarkBlue
+    ArrowColor Black
+}
+skinparam defaultFontSize 13
+skinparam classAttributeIconSize 0
+skinparam nodesep 40
+skinparam ranksep 50
+
+' Striktní vertikální layout
+top to bottom direction
+
 package "Controllers" {
+  AuthController -[hidden]down- EventController
+  EventController -[hidden]down- ReservationController
+  ReservationController -[hidden]down- PaymentController
+  PaymentController -[hidden]down- ComplaintController
+  
   class AuthController {
-    + register(req, res): Promise<void>
-    + login(req, res): Promise<void>
-    + refresh(req, res): Promise<void>
-    + logout(req, res): Promise<void>
+    + register()
+    + login()
+    + refresh()
+    + logout()
   }
   
   class EventController {
-    + getAllEvents(req, res): Promise<void>
-    + getEventById(req, res): Promise<void>
-    + createEvent(req, res): Promise<void>
-    + updateEvent(req, res): Promise<void>
-    + deleteEvent(req, res): Promise<void>
-    + getOrganizerEvents(req, res): Promise<void>
+    + getAllEvents()
+    + getEventById()
+    + createEvent()
+    + updateEvent()
+    + deleteEvent()
   }
   
   class ReservationController {
-    + createReservation(req, res): Promise<void>
-    + getUserReservations(req, res): Promise<void>
-    + cancelReservation(req, res): Promise<void>
-    + getReservationDetails(req, res): Promise<void>
+    + createReservation()
+    + getUserReservations()
+    + cancelReservation()
+    + downloadTicket()
   }
   
   class PaymentController {
-    + createPaymentIntent(req, res): Promise<void>
-    + handleWebhook(req, res): Promise<void>
-    + refundPayment(req, res): Promise<void>
+    + createPaymentIntent()
+    + handleStripeWebhook()
+    + refundPayment()
   }
   
   class ComplaintController {
-    + createComplaint(req, res): Promise<void>
-    + getUserComplaints(req, res): Promise<void>
-    + updateComplaintStatus(req, res): Promise<void>
-    + getAllComplaints(req, res): Promise<void>
-  }
-  
-  class AdminController {
-    + getAllUsers(req, res): Promise<void>
-    + updateUserStatus(req, res): Promise<void>
-    + getUserStats(req, res): Promise<void>
+    + createComplaint()
+    + getUserComplaints()
+    + updateComplaintStatus()
   }
 }
 
 package "Services" {
+  AuthService -[hidden]down- EventService
+  EventService -[hidden]down- ReservationService
+  ReservationService -[hidden]down- PaymentService
+  PaymentService -[hidden]down- ComplaintService
+  ComplaintService -[hidden]down- EmailService
+  EmailService -[hidden]down- TicketGenerator
+  
   class AuthService {
-    + registerUser(data): Promise<User>
-    + loginUser(email, password): Promise<Tokens>
-    + refreshTokens(token): Promise<Tokens>
-    + logoutUser(userId): Promise<void>
-    - hashPassword(password): Promise<string>
-    - generateTokens(userId): Tokens
+    + registerUser()
+    + loginUser()
+    + refreshAccessToken()
+    + logout()
   }
   
   class EventService {
-    + createEvent(data, organizerId): Promise<Event>
-    + updateEvent(id, data): Promise<Event>
-    + deleteEvent(id): Promise<void>
-    + getEvents(filters): Promise<Event[]>
-    + getEventStats(eventId): Promise<Stats>
+    + getAllEvents()
+    + getEventById()
+    + createEvent()
+    + updateEvent()
+    + deleteEvent()
   }
   
   class ReservationService {
-    + createReservation(data): Promise<Reservation>
-    + cancelReservation(id, userId): Promise<void>
-    + getUserReservations(userId): Promise<Reservation[]>
-    - generateReservationCode(): string
-    - checkAvailability(eventId, count): Promise<boolean>
+    + createReservation()
+    + getUserReservations()
+    + cancelReservation()
   }
   
   class PaymentService {
-    + createPaymentIntent(amount): Promise<PaymentIntent>
-    + processWebhook(event): Promise<void>
-    + refundPayment(paymentId): Promise<Refund>
-    - updateReservationStatus(id, status): Promise<void>
+    + createPaymentIntent()
+    + handleWebhook()
+    + processRefund()
+  }
+  
+  class ComplaintService {
+    + createComplaint()
+    + getUserComplaints()
+    + updateStatus()
+    + resolveComplaint()
   }
   
   class EmailService {
-    + sendWelcomeEmail(user): Promise<void>
-    + sendReservationConfirmation(reservation): Promise<void>
-    + sendPaymentConfirmation(reservation): Promise<void>
-    + sendCancellationEmail(reservation): Promise<void>
-    + sendComplaintResponse(complaint): Promise<void>
-    - sendEmail(to, subject, html): Promise<void>
+    + sendEmail()
+    + sendReservationConfirmation()
+    + sendPaymentConfirmation()
   }
   
   class TicketGenerator {
-    + generateTicketPDF(reservation): Promise<Buffer>
-    - generateQRCode(code): Promise<string>
-    - createPDFDocument(data): PDFDocument
+    + generateTicketPDF()
   }
 }
 
 package "Middleware" {
+  AuthMiddleware -[hidden]down- ValidationMiddleware
+  ValidationMiddleware -[hidden]down- ErrorMiddleware
+  
   class AuthMiddleware {
-    + verifyToken(req, res, next): void
-    + requireRole(roles): Middleware
-    - extractToken(req): string
+    + authenticate()
+    + authorizeRole()
   }
   
   class ValidationMiddleware {
-    + validateRequest(schema): Middleware
-    + handleValidationErrors(req, res, next): void
+    + validateRequest()
   }
   
   class ErrorMiddleware {
-    + errorHandler(err, req, res, next): void
-    + notFoundHandler(req, res): void
+    + handleError()
   }
 }
 
-package "Models (Prisma)" {
-  class User {
-    + id: string
-    + email: string
-    + password: string
-    + firstName: string
-    + lastName: string
-    + role: UserRole
-    + isActive: boolean
-  }
-  
-  class Event {
-    + id: string
-    + title: string
-    + description: string
-    + location: string
-    + startDate: Date
-    + endDate: Date
-    + category: string
-    + totalTickets: number
-    + availableTickets: number
-    + ticketPrice: Decimal
-    + status: EventStatus
-  }
-  
-  class Reservation {
-    + id: string
-    + ticketCount: number
-    + totalAmount: Decimal
-    + status: ReservationStatus
-    + reservationCode: string
-  }
-  
-  class Payment {
-    + id: string
-    + amount: Decimal
-    + status: PaymentStatus
-    + stripePaymentId: string
-  }
-  
-  class Complaint {
-    + id: string
-    + reason: string
-    + description: string
-    + status: ComplaintStatus
-    + adminResponse: string
-    + refundIssued: boolean
+package "Database" {
+  class PrismaClient {
+    + user: UserDelegate
+    + event: EventDelegate
+    + reservation: ReservationDelegate
+    + payment: PaymentDelegate
+    + complaint: ComplaintDelegate
   }
 }
 
-package "Routes" {
-  class AuthRoutes {
-    + setupRoutes(): Router
-  }
-  
-  class EventRoutes {
-    + setupRoutes(): Router
-  }
-  
-  class ReservationRoutes {
-    + setupRoutes(): Router
-  }
-  
-  class PaymentRoutes {
-    + setupRoutes(): Router
-  }
-}
+' Vynucení pořadí balíčků
+ComplaintController -[hidden]down- AuthService
+TicketGenerator -[hidden]down- AuthMiddleware
+ErrorMiddleware -[hidden]down- PrismaClient
 
-package "Utils" {
-  class Database {
-    + prisma: PrismaClient
-    + connect(): Promise<void>
-    + disconnect(): Promise<void>
-  }
-  
-  class Logger {
-    + info(message): void
-    + error(message, error): void
-    + warn(message): void
-  }
-}
+' Controller -> Service vztahy (vertikální směr)
+AuthController -down-> AuthService
+EventController -down-> EventService
+ReservationController -down-> ReservationService
+PaymentController -down-> PaymentService
+ComplaintController -down-> ComplaintService
 
-' Controller -> Service relationships
-AuthController --> AuthService
-AuthController --> EmailService
-EventController --> EventService
-ReservationController --> ReservationService
-ReservationController --> EmailService
-PaymentController --> PaymentService
-PaymentController --> EmailService
-ComplaintController --> EmailService
-AdminController --> AuthService
+' Service -> Database vztahy (vertikální směr)
+AuthService -down-> PrismaClient
+EventService -down-> PrismaClient
+ReservationService -down-> PrismaClient
+PaymentService -down-> PrismaClient
+ComplaintService -down-> PrismaClient
 
-' Service -> Model relationships
-AuthService --> User
-EventService --> Event
-ReservationService --> Reservation
-ReservationService --> Event
-PaymentService --> Payment
-PaymentService --> Reservation
-TicketGenerator --> Reservation
+' Service -> Service vztahy
+ReservationService -down-> EmailService
+PaymentService -down-> EmailService
+ReservationService -down-> TicketGenerator
 
-' Routes -> Controller relationships
-AuthRoutes --> AuthController
-EventRoutes --> EventController
-ReservationRoutes --> ReservationController
-PaymentRoutes --> PaymentController
-
-' Middleware usage
-AuthRoutes --> AuthMiddleware
-EventRoutes --> AuthMiddleware
-ReservationRoutes --> AuthMiddleware
-AuthRoutes --> ValidationMiddleware
-EventRoutes --> ValidationMiddleware
-
-' Service -> Utils relationships
-AuthService --> Database
-EventService --> Database
-ReservationService --> Database
-PaymentService --> Database
-EmailService --> Logger
+' Externí API
+PaymentService -down-> "Stripe API" : uses
 
 @enduml

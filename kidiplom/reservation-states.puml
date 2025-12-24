@@ -1,7 +1,7 @@
 @startuml
 skinparam backgroundColor #FEFEFE
-skinparam handwritten false
 skinparam defaultFontSize 12
+skinparam linetype polyline
 
 title Stavový diagram rezervace
 
@@ -10,8 +10,15 @@ state PENDING {
   PENDING : Čeká na dokončení platby
 }
 
+state CONFIRMED {
+  CONFIRMED : Rezervace potvrzena
+  CONFIRMED : Akce zdarma
+  CONFIRMED : Vstupenka aktivní
+}
+
 state PAID {
   PAID : Rezervace zaplacena
+  PAID : Placená akce
   PAID : Vstupenka aktivní
 }
 
@@ -25,11 +32,15 @@ state REFUNDED {
   REFUNDED : Peníze vráceny
 }
 
-[*] --> PENDING : Vytvoření rezervace
+[*] --> PENDING : Vytvoření rezervace\n(placená akce)
+[*] --> CONFIRMED : Vytvoření rezervace\n(akce zdarma)
 
 PENDING --> PAID : Úspěšná platba\n(Stripe webhook)
 PENDING --> CANCELLED : Uživatel zruší\n(před platbou)
 PENDING --> CANCELLED : Timeout platby
+
+CONFIRMED --> CANCELLED : Uživatel zruší\n(bez refundace)
+CONFIRMED --> CANCELLED : Zrušení akce\n(organizátorem)
 
 PAID --> REFUNDED : Refundace\n(reklamace schválena)
 PAID --> REFUNDED : Zrušení rezervace\n(uživatelem)
@@ -38,13 +49,18 @@ PAID --> REFUNDED : Zrušení akce\n(organizátorem)
 CANCELLED --> [*]
 REFUNDED --> [*]
 PAID --> [*] : Akce proběhla
+CONFIRMED --> [*] : Akce proběhla
 
 note right of PENDING
   Placené akce: ticketPrice > 0
   - Stav PENDING do dokončení platby
-  
+  - Po platbě přechod na PAID
+end note
+
+note right of CONFIRMED
   Akce zdarma: ticketPrice = 0
-  - Okamžitě stav PAID
+  - Okamžitě stav CONFIRMED
+  - Žádná platba není vyžadována
 end note
 
 note right of REFUNDED

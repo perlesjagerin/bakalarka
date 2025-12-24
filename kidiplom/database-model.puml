@@ -1,7 +1,7 @@
 @startuml
-skinparam handwritten false
 title Diagram relačního modelu databáze
 
+skinparam linetype polyline
 !define table(x) class x << (T,#FFAAAA) >>
 !define enum(x) class x << (E,#AAFFAA) >>
 
@@ -20,6 +20,7 @@ enum EventStatus {
 
 enum ReservationStatus {
   PENDING
+  CONFIRMED
   PAID
   CANCELLED
   REFUNDED

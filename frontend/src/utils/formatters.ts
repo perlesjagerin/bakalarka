@@ -34,7 +34,11 @@ export function formatDateTime(
  * @returns Naformátované datum s názvy (např. "Po 15. ledna 2024")
  */
 export function formatDateLong(date: string | Date): string {
-  return new Date(date).toLocaleDateString('cs-CZ', {
+  if (!date) return 'Datum není k dispozici';
+  const parsedDate = new Date(date);
+  if (isNaN(parsedDate.getTime())) return 'Neplatné datum';
+  
+  return parsedDate.toLocaleDateString('cs-CZ', {
     weekday: 'short',
     year: 'numeric',
     month: 'long',

@@ -80,7 +80,7 @@ export default function MyReservationsPage() {
               setNewTicketCount={setNewTicketCount}
               handleUpdateReservation={handleUpdateReservation}
               handleCancelEdit={handleCancelEdit}
-              handleStartEdit={handleEditReservation}
+              handleEditReservation={handleEditReservation}
             />
           ))}
         </div>

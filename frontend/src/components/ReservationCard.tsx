@@ -43,7 +43,7 @@ interface ReservationCardProps {
   setNewTicketCount: (count: number) => void;
   handleUpdateReservation: (id: string) => void;
   handleCancelEdit: () => void;
-  handleStartEdit: (reservation: any) => void;
+  handleEditReservation: (reservation: any) => void;
 }
 
 function ReservationCard({ 
@@ -55,14 +55,14 @@ function ReservationCard({
   setNewTicketCount,
   handleUpdateReservation,
   handleCancelEdit,
-  handleStartEdit
+  handleEditReservation
 }: ReservationCardProps) {
   const [imageError, setImageError] = useState(false);
   const categoryStyle = getCategoryStyle(reservation.event.category);
 
   const isUpcoming = new Date(reservation.event.startDate) > new Date();
   const isPast = new Date(reservation.event.endDate) < new Date();
-  const canCancel = reservation.status === 'PAID' && isUpcoming;
+  const canCancel = (reservation.status === 'PAID' || reservation.status === 'CONFIRMED') && isUpcoming;
   const canPay = reservation.status === 'PENDING';
 
   return (
@@ -126,20 +126,15 @@ function ReservationCard({
                   <input
                     type="number"
                     min="1"
-                    max={reservation.ticketCount + reservation.event.availableTickets}
+                    max={reservation.event.availableTickets}
                     value={newTicketCount}
                     onChange={(e) => {
-                      const value = parseInt(e.target.value);
-                      const maxTickets = reservation.ticketCount + reservation.event.availableTickets;
-                      if (value >= 1 && value <= maxTickets) {
-                        setNewTicketCount(value);
-                      } else if (e.target.value === '') {
-                        setNewTicketCount(1);
-                      }
+                      const value = parseInt(e.target.value) || 1;
+                      setNewTicketCount(value);
                     }}
                     className="w-20 px-2 py-1 border border-gray-300 rounded"
                   />
-                  <span>x vstupenka (max {reservation.ticketCount + reservation.event.availableTickets})</span>
+                  <span>x vstupenka (max {reservation.event.availableTickets})</span>
                 </div>
               ) : (
                 <span>{reservation.ticketCount}x vstupenka</span>
@@ -168,7 +163,7 @@ function ReservationCard({
           </div>
 
           {/* Status info */}
-          {isPast && reservation.status === 'PAID' && (
+          {isPast && (reservation.status === 'PAID' || reservation.status === 'CONFIRMED') && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 flex items-start gap-2 text-sm">
               <AlertCircle size={16} className="text-blue-600 mt-0.5 flex-shrink-0" />
               <p className="text-blue-800">Tato akce již proběhla.</p>
@@ -203,7 +198,7 @@ function ReservationCard({
                       Zaplatit
                     </Link>
                     <button
-                      onClick={() => handleStartEdit(reservation)}
+                      onClick={() => handleEditReservation(reservation)}
                       className="btn-secondary text-sm flex items-center gap-1"
                     >
                       <Edit size={16} />
@@ -212,7 +207,7 @@ function ReservationCard({
                   </>
                 )}
                 
-                {reservation.status === 'PAID' && (
+                {(reservation.status === 'PAID' || reservation.status === 'CONFIRMED') && (
                   <>
                     <button
                       onClick={() => downloadTicket(reservation)}

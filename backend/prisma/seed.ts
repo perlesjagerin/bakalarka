@@ -140,6 +140,75 @@ async function main() {
 
   console.log(`✅ Vytvořeno ${events.length} akcí`);
 
+  // Vytvoření rezervací
+  const createdEvents = await prisma.event.findMany();
+  const freeEvent = createdEvents.find(e => e.ticketPrice === 0);
+  const paidEvent = createdEvents.find(e => e.ticketPrice > 0);
+
+  if (freeEvent) {
+    // Rezervace pro zadarmo akci - CONFIRMED status
+    const confirmedReservation = await prisma.reservation.create({
+      data: {
+        userId: user.id,
+        eventId: freeEvent.id,
+        ticketCount: 2,
+        totalAmount: 0,
+        reservationCode: 'FREE-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+        status: 'CONFIRMED',
+      },
+    });
+    console.log('✅ Vytvořena POTVRZENÁ rezervace (zadarmo akce)');
+  }
+
+  if (paidEvent) {
+    // Rezervace pro placenou akci - PAID status
+    const paidReservation = await prisma.reservation.create({
+      data: {
+        userId: user.id,
+        eventId: paidEvent.id,
+        ticketCount: 1,
+        totalAmount: paidEvent.ticketPrice,
+        reservationCode: 'PAID-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+        status: 'PAID',
+      },
+    });
+
+    // Vytvoření platby pro placenou rezervaci
+    await prisma.payment.create({
+      data: {
+        reservationId: paidReservation.id,
+        amount: paidEvent.ticketPrice,
+        stripePaymentId: 'pi_test_' + Math.random().toString(36).substr(2, 20),
+        status: 'COMPLETED',
+      },
+    });
+
+    console.log('✅ Vytvořena ZAPLACENÁ rezervace s platbou');
+
+    // Rezervace čekající na platbu - PENDING status
+    const pendingReservation = await prisma.reservation.create({
+      data: {
+        userId: user.id,
+        eventId: paidEvent.id,
+        ticketCount: 2,
+        totalAmount: paidEvent.ticketPrice * 2,
+        reservationCode: 'PEND-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+        status: 'PENDING',
+      },
+    });
+
+    await prisma.payment.create({
+      data: {
+        reservationId: pendingReservation.id,
+        amount: paidEvent.ticketPrice * 2,
+        stripePaymentId: 'pi_test_' + Math.random().toString(36).substr(2, 20),
+        status: 'PENDING',
+      },
+    });
+
+    console.log('✅ Vytvořena ČEKAJÍCÍ rezervace (pending)');
+  }
+
   console.log('\n🎉 Seedování dokončeno!');
   console.log('\n📝 Můžeš se přihlásit jako:');
   console.log('   Admin: admin@example.com / admin123');

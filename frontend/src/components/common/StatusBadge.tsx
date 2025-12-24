@@ -1,7 +1,7 @@
 import React from 'react';
 
 type EventStatus = 'DRAFT' | 'PUBLISHED' | 'CANCELLED' | 'COMPLETED';
-type ReservationStatus = 'PENDING' | 'PAID' | 'CANCELLED' | 'REFUNDED';
+type ReservationStatus = 'PENDING' | 'CONFIRMED' | 'PAID' | 'CANCELLED' | 'REFUNDED';
 type ComplaintStatus = 'SUBMITTED' | 'IN_REVIEW' | 'REJECTED' | 'RESOLVED';
 type UserRole = 'USER' | 'ORGANIZER' | 'ADMIN';
 
@@ -30,6 +30,7 @@ const EVENT_LABELS: Record<EventStatus, string> = {
 
 const RESERVATION_STYLES: Record<ReservationStatus, string> = {
   PENDING: 'bg-yellow-100 text-yellow-800',
+  CONFIRMED: 'bg-green-100 text-green-800',
   PAID: 'bg-green-100 text-green-800',
   CANCELLED: 'bg-red-100 text-red-800',
   REFUNDED: 'bg-blue-100 text-blue-800',
@@ -37,6 +38,7 @@ const RESERVATION_STYLES: Record<ReservationStatus, string> = {
 
 const RESERVATION_LABELS: Record<ReservationStatus, string> = {
   PENDING: 'Čeká na platbu',
+  CONFIRMED: 'Potvrzeno',
   PAID: 'Zaplaceno',
   CANCELLED: 'Zrušeno',
   REFUNDED: 'Refundováno',

@@ -222,6 +222,15 @@ class EventService {
             email: true
           }
         },
+        reservations: {
+          where: {
+            status: { in: ['PAID', 'CONFIRMED'] }
+          },
+          select: {
+            totalAmount: true,
+            ticketCount: true
+          }
+        },
         _count: {
           select: { reservations: true }
         }
@@ -229,7 +238,22 @@ class EventService {
       orderBy: { createdAt: 'desc' }
     });
 
-    return events;
+    // Přidání vypočítaného příjmu pro každou akci (pouze z PAID a CONFIRMED rezervací)
+    const eventsWithRevenue = events.map(event => {
+      const confirmedRevenue = event.reservations.reduce((sum, r) => sum + Number(r.totalAmount), 0);
+      const confirmedTicketsSold = event.reservations.reduce((sum, r) => sum + r.ticketCount, 0);
+      
+      // Odstranění reservations z odpovědi
+      const { reservations, ...eventWithoutReservations } = event;
+      
+      return {
+        ...eventWithoutReservations,
+        confirmedRevenue,
+        confirmedTicketsSold
+      };
+    });
+
+    return eventsWithRevenue;
   }
 }
 

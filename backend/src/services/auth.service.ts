@@ -108,7 +108,8 @@ class AuthService {
         firstName: user.firstName,
         lastName: user.lastName,
         name: `${user.firstName} ${user.lastName}`,
-        role: user.role
+        role: user.role,
+        createdAt: user.createdAt
       },
       token
     };

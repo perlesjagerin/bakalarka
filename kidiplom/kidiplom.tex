@@ -114,7 +114,7 @@ program=itk,
 
 %% Volitelné poděkování. Stručné! Výchozí je prázdné. Makro nemá
 %% nepovinný parametr pro uvedení jazyka.
-\thanks{Rád bych poděkoval vedoucímu práce Mgr. Jiřímu Zacpalovi, Ph.D. za cenné připomínky a konzultace během zpracování této práce. Zvláštní poděkování patří mé rodině za trpělivost a podporu v průběhu celého studia.}
+\thanks{Děkuji vedoucímu práce Mgr. Jiřímu Zacpalovi, Ph.D. za odborné vedení, konstruktivní připomínky a čas věnovaný konzultacím. Zvláštní dík patří mé rodině za neustálou podporu a povzbuzení v průběhu celého studia.}
 
 %% Cesta k souboru s bibliografií pro její sazbu pomocí BibLaTeXu
 %% (zvolenou nepovinným parametrem biblatex makra
@@ -126,7 +126,6 @@ program=itk,
 %% práce.
 \usepackage{lipsum}
 \usepackage{longtable}
-\usepackage{rotating}
 
 \begin{document}
 %% Sazba úvodních stran -- titulní, s bibliografickými údaji, s
@@ -210,11 +209,11 @@ Detail akce poskytuje kompletní informace o události včetně popisu, data a �
 
 Při placených akcích je implementován Stripe Payment Intent flow s bezpečným platebním formulářem (Stripe Elements). Po úspěšné platbě potvrzené přes Stripe webhook je rezervace automaticky označena jako PAID a uživatel obdrží emailové potvrzení s rezervačním kódem.
 
-Pro akce zdarma (ticketPrice = 0) je rezervace okamžitě potvrzena bez platebního procesu. Uživatel může své rezervace spravovat na stránce "Moje rezervace", kde může rezervaci zrušit (refundace pro placené rezervace) nebo stáhnout PDF vstupenku s QR kódem.
+Pro akce zdarma (ticketPrice = 0) je rezervace okamžitě potvrzena se statusem CONFIRMED bez platebního procesu. Uživatel může své rezervace spravovat na stránce "Moje rezervace", kde může rezervaci zrušit (refundace pro placené rezervace) nebo stáhnout PDF vstupenku s QR kódem.
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.75\textwidth]{graphics/reservation-flow.png}
+    \includegraphics[width=0.7\textwidth]{graphics/reservation-flow.png}
     \caption{Sekvenční diagram procesu rezervace a platby}
     \label{fig:reservationflow}
 \end{figure}
@@ -228,7 +227,7 @@ Obrázek~\ref{fig:reservationflow} znázorňuje kompletní flow rezervace vstupe
     \label{fig:reservationstates}
 \end{figure}
 
-Obrázek~\ref{fig:reservationstates} ukazuje přechody mezi stavy rezervace. Rezervace začíná ve stavu PENDING (čeká na platbu), přechází do stavu PAID po úspěšné platbě, a může končit ve stavu CANCELLED (zrušeno bez platby) nebo REFUNDED (zrušeno s vrácením peněz). Refundace může nastat z důvodu schválené reklamace, zrušení uživatelem nebo zrušení celé akce organizátorem.
+Obrázek~\ref{fig:reservationstates} ukazuje přechody mezi stavy rezervace. Placené akce začínají ve stavu PENDING (čeká na platbu) a přechází do stavu PAID po úspěšné platbě. Akce zdarma jsou okamžitě potvrzeny se statusem CONFIRMED. Rezervace může končit ve stavu CANCELLED (zrušeno bez platby) nebo REFUNDED (zrušeno s vrácením peněz). Refundace může nastat z důvodu schválené reklamace, zrušení uživatelem nebo zrušení celé akce organizátorem.
 
 \subsection{Reklamace a vrácení vstupenek}
 Systém reklamací umožňuje uživatelům podat reklamaci na rezervovanou akci prostřednictvím formuláře, který vyžaduje popis problému. Reklamace prochází těmito stavy:
@@ -244,7 +243,7 @@ Admin může v administračním rozhraní (\texttt{/admin/complaints}) prohlíž
 Pokud je reklamace schválena s refundací, systém automaticky:
 \begin{enumerate}
     \item Provede Stripe refund (pouze pro placené akce)
-    \item Aktualizuje stav rezervace na CANCELLED
+    \item Aktualizuje stav rezervace na REFUNDED (pro placené akce) nebo CANCELLED (pro akce zdarma)
     \item Zvýší počet dostupných vstupenek na akci
     \item Odešle emailovou notifikaci uživateli s informací o refundaci
 \end{enumerate}
@@ -262,7 +261,7 @@ Implementovány jsou i další knihovny: \textbf{Nodemailer} pro odesílání em
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.8\textwidth]{graphics/architecture.png}
+    \includegraphics[width=0.75\textwidth]{graphics/architecture.png}
     \caption{Třívrstvá architektura aplikace s externími službami}
     \label{fig:architecture}
 \end{figure}
@@ -298,16 +297,7 @@ Pro autentizaci a autorizaci uživatelů je implementován systém založený na
     \item \textbf{Refresh Token} - dlouhodobý (7 dní), uložený v databázi, sloužící k obnovení access tokenu
 \end{itemize}
 
-Hesla jsou bezpečně hashována pomocí \textbf{bcryptjs} s salt rounds nastaveným na 10. Middleware \texttt{authenticate} chrání všechny chráněné API endpointy a automaticky ověřuje JWT tokeny.
-
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=0.65\textwidth]{graphics/auth-flow.png}
-    \caption{Sekvenční diagram procesu autentizace s JWT tokeny}
-    \label{fig:authflow}
-\end{figure}
-
-Obrázek~\ref{fig:authflow} ilustruje kompletní proces autentizace od registrace přes přihlášení až po odhlášení. Proces zahrnuje registraci s hashováním hesla, přihlášení s generováním JWT tokenů, autorizované API požadavky s ověřováním tokenu, refresh mechanismus pro obnovení access tokenu a bezpečné odhlášení se smazáním tokenů.
+Hesla jsou bezpečně hashována pomocí \textbf{bcryptjs} s salt rounds nastaveným na 10. Middleware \texttt{authenticate} chrání všechny chráněné API endpointy a automaticky ověřuje JWT tokeny. Proces zahrnuje registraci s hashováním hesla, přihlášení s generováním JWT tokenů, autorizované API požadavky s ověřováním tokenu, refresh mechanismus pro obnovení access tokenu a bezpečné odhlášení se smazáním tokenů.
 
 \subsubsection{Platby}
 Pro zpracování plateb je implementována integrace se \textbf{Stripe}, což je flexibilní a spolehlivá platební brána. Implementace zahrnuje:
@@ -349,7 +339,7 @@ Systém automaticky odesílá emailové notifikace při klíčových událostech
 Všechny emaily mají profesionální HTML design s gradientním headerem, jsou responzivní a obsahují call-to-action buttony s odkazy do aplikace. Pro odesílání je použita knihovna Nodemailer s SMTP konfigurací (podporuje Gmail, Outlook, vlastní SMTP server).
 
 \subsubsection{PDF vstupenky s QR kódy}
-Každá potvrzená rezervace (status PAID) umožňuje stažení PDF vstupenky, která obsahuje:
+Každá potvrzená rezervace (status PAID nebo CONFIRMED) umožňuje stažení PDF vstupenky, která obsahuje:
 \begin{itemize}
     \item Název a logo aplikace
     \item Detaily akce (název, datum, místo)
@@ -392,17 +382,6 @@ Celkové testovací pokrytí dosahuje vysokých hodnot na straně backendu i fro
 Databázový model obsahuje 5 hlavních entit (User, Event, Reservation, Payment, Complaint) a 5 enumeračních typů pro stavy. Všechny tabulky využívají UUID primární klíče a obsahují časové razítko pro sledování vytvoření a aktualizace záznamů. Vztahy mezi tabulkami zajišťují referenční integritu a podporují kaskádové operace.
 
 \clearpage
-\subsection{Diagram tříd}
-\begin{sidewaysfigure}
-    \centering
-    \includegraphics[width=0.95\textheight]{graphics/class-diagram.png}
-    \caption{Diagram tříd - Backend struktura (MVC pattern)}
-    \label{fig:classdiagram}
-\end{sidewaysfigure}
-
-Architektura backendu je rozdělena do čtyř hlavních vrstev: Controllers (zpracování HTTP požadavků), Services (business logika), Middleware (autentizace, validace, error handling) a Database (Prisma ORM). Všechny služby sdílejí přístup k Prisma klientovi pro práci s databází. EmailService a TicketGenerator jsou pomocné třídy volané z různých služeb pro odesílání notifikací a generování PDF vstupenek.
-
-\clearpage
 \section{Programátorská příručka}
 
 Tato kapitola slouží jako technická dokumentace pro vývojáře, kteří chtějí rozumět struktuře aplikace, upravit ji nebo ji rozšířit.
@@ -423,7 +402,7 @@ Middleware pro ověření tokenu extrahuje token z Authorization hlavičky HTTP 
 
 Vytvoření rezervace vyžaduje několik databázových operací, které musí být provedeny atomicky. Prisma ORM poskytuje transakční mechanismus zajišťující, že buď proběhnou všechny operace, nebo žádná.
 
-Proces rezervace zahrnuje tyto kroky: Nejprve se kontroluje dostupnost vstupenek načtením akce z databáze. Pokud je dostupný počet menší než požadovaný, transakce se zruší s chybovou hláškou. Následně se snižuje počet dostupných vstupenek aktualizací pole availableTickets. Poté se vytváří nový záznam rezervace s vygenerovaným unikátním rezervačním kódem. Status rezervace je nastaven na PENDING pro placené akce nebo PAID pro akce zdarma. Nakonec se vytváří záznam platby propojený s rezervací.
+Proces rezervace zahrnuje tyto kroky: Nejprve se kontroluje dostupnost vstupenek načtením akce z databáze. Pokud je dostupný počet menší než požadovaný, transakce se zruší s chybovou hláškou. Následně se snižuje počet dostupných vstupenek aktualizací pole availableTickets. Poté se vytváří nový záznam rezervace s vygenerovaným unikátním rezervačním kódem. Status rezervace je nastaven na PENDING pro placené akce nebo CONFIRMED pro akce zdarma. Nakonec se vytváří záznam platby propojený s rezervací.
 
 Pokud jakýkoliv krok selže, celá transakce se automaticky vrátí zpět (rollback) a databáze zůstane v konzistentním stavu.
 
@@ -443,9 +422,9 @@ Refundace je komplexní proces vyžadující koordinaci mezi Stripe API, databá
 
 Proces začíná načtením rezervace včetně propojené platby a akce. Pokud je rezervace placená (totalAmount > 0), provede se Stripe refund voláním Stripe API s Payment Intent ID. Po úspěšné refundaci se aktualizuje status platby na REFUNDED.
 
-Následně se aktualizuje status rezervace na REFUNDED nebo CANCELLED podle kontextu. Vrátí se vstupenky do akce zvýšením pole availableTickets o počet vstupenek z rezervace. Nakonec se odešle email uživateli s potvrzením refundace a informací o vrácení peněz.
+Následně se aktualizuje status rezervace na REFUNDED (pro placené akce) nebo CANCELLED (pro akce zdarma). Vrátí se vstupenky do akce zvýšením pole availableTickets o počet vstupenek z rezervace. Nakonec se odešle email uživateli s potvrzením zrušení.
 
-Pro akce zdarma se Stripe refund přeskočí a provádí se pouze zrušení rezervace a vrácení vstupenek.
+Pro akce zdarma (status CONFIRMED) se Stripe refund přeskočí a provádí se pouze zrušení rezervace se statusem CANCELLED a vrácení vstupenek.
 
 \subsubsection{Generování PDF vstupenek}
 

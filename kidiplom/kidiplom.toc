@@ -15,45 +15,44 @@
 \contentsline {subsection}{\numberline {2.4}Reklamace a vrácení vstupenek}{12}{subsection.2.4}%
 \contentsline {subsection}{\numberline {2.5}Popis použitých technologií}{13}{subsection.2.5}%
 \contentsline {subsubsection}{\numberline {2.5.1}Backend}{13}{subsubsection.2.5.1}%
-\contentsline {subsubsection}{\numberline {2.5.2}Databáze}{14}{subsubsection.2.5.2}%
+\contentsline {subsubsection}{\numberline {2.5.2}Databáze}{13}{subsubsection.2.5.2}%
 \contentsline {subsubsection}{\numberline {2.5.3}Frontend}{14}{subsubsection.2.5.3}%
 \contentsline {subsubsection}{\numberline {2.5.4}Autentizace a autorizace}{14}{subsubsection.2.5.4}%
-\contentsline {subsubsection}{\numberline {2.5.5}Platby}{16}{subsubsection.2.5.5}%
-\contentsline {subsubsection}{\numberline {2.5.6}Hosting a nasazení}{16}{subsubsection.2.5.6}%
+\contentsline {subsubsection}{\numberline {2.5.5}Platby}{15}{subsubsection.2.5.5}%
+\contentsline {subsubsection}{\numberline {2.5.6}Hosting a nasazení}{15}{subsubsection.2.5.6}%
 \contentsline {subsection}{\numberline {2.6}Implementované pokročilé funkce}{16}{subsection.2.6}%
 \contentsline {subsubsection}{\numberline {2.6.1}Email notifikace}{16}{subsubsection.2.6.1}%
-\contentsline {subsubsection}{\numberline {2.6.2}PDF vstupenky s QR kódy}{17}{subsubsection.2.6.2}%
+\contentsline {subsubsection}{\numberline {2.6.2}PDF vstupenky s QR kódy}{16}{subsubsection.2.6.2}%
 \contentsline {subsubsection}{\numberline {2.6.3}Admin dashboard}{17}{subsubsection.2.6.3}%
-\contentsline {subsubsection}{\numberline {2.6.4}Testování}{18}{subsubsection.2.6.4}%
-\contentsline {subsection}{\numberline {2.7}Relační model databáze}{18}{subsection.2.7}%
-\contentsline {subsection}{\numberline {2.8}Diagram tříd}{20}{subsection.2.8}%
-\contentsline {section}{\numberline {3}Programátorská příručka}{22}{section.3}%
-\contentsline {subsection}{\numberline {3.1}Klíčové algoritmy a implementace}{22}{subsection.3.1}%
-\contentsline {subsubsection}{\numberline {3.1.1}Autentizace pomocí JWT}{22}{subsubsection.3.1.1}%
-\contentsline {subsubsection}{\numberline {3.1.2}Atomické transakce při rezervaci}{22}{subsubsection.3.1.2}%
-\contentsline {subsubsection}{\numberline {3.1.3}Zpracování Stripe webhooků}{22}{subsubsection.3.1.3}%
-\contentsline {subsubsection}{\numberline {3.1.4}Proces refundace}{23}{subsubsection.3.1.4}%
-\contentsline {subsubsection}{\numberline {3.1.5}Generování PDF vstupenek}{23}{subsubsection.3.1.5}%
-\contentsline {subsection}{\numberline {3.2}Možnosti rozšíření aplikace}{23}{subsection.3.2}%
-\contentsline {subsubsection}{\numberline {3.2.1}Přidání nové databázové entity}{23}{subsubsection.3.2.1}%
-\contentsline {subsubsection}{\numberline {3.2.2}Přidání nového typu emailové notifikace}{24}{subsubsection.3.2.2}%
-\contentsline {subsubsection}{\numberline {3.2.3}Integrace nové platební metody}{24}{subsubsection.3.2.3}%
-\contentsline {subsubsection}{\numberline {3.2.4}Přidání nové uživatelské role}{24}{subsubsection.3.2.4}%
-\contentsline {subsection}{\numberline {3.3}Testování}{24}{subsection.3.3}%
-\contentsline {subsection}{\numberline {3.4}Deployment}{24}{subsection.3.4}%
-\contentsline {section}{\numberline {4}Uživatelská příručka}{25}{section.4}%
-\contentsline {subsection}{\numberline {4.1}První kroky}{25}{subsection.4.1}%
-\contentsline {subsubsection}{\numberline {4.1.1}Registrace}{25}{subsubsection.4.1.1}%
-\contentsline {subsubsection}{\numberline {4.1.2}Přihlášení}{25}{subsubsection.4.1.2}%
-\contentsline {subsection}{\numberline {4.2}Prohlížení a rezervace akcí}{25}{subsection.4.2}%
-\contentsline {subsubsection}{\numberline {4.2.1}Prohlížení akcí}{25}{subsubsection.4.2.1}%
-\contentsline {subsubsection}{\numberline {4.2.2}Detail a rezervace}{25}{subsubsection.4.2.2}%
-\contentsline {subsection}{\numberline {4.3}Správa rezervací}{26}{subsection.4.3}%
-\contentsline {subsection}{\numberline {4.4}Reklamace}{26}{subsection.4.4}%
-\contentsline {subsection}{\numberline {4.5}Funkce pro organizátory}{26}{subsection.4.5}%
-\contentsline {subsubsection}{\numberline {4.5.1}Vytvoření akce}{26}{subsubsection.4.5.1}%
-\contentsline {subsubsection}{\numberline {4.5.2}Správa akcí}{26}{subsubsection.4.5.2}%
-\contentsline {subsection}{\numberline {4.6}Funkce pro administrátory}{27}{subsection.4.6}%
-\contentsline {subsubsection}{\numberline {4.6.1}Správa uživatelů}{27}{subsubsection.4.6.1}%
-\contentsline {subsubsection}{\numberline {4.6.2}Správa akcí a reklamací}{27}{subsubsection.4.6.2}%
-\contentsline {subsection}{\numberline {4.7}Diagram případu použití}{27}{subsection.4.7}%
+\contentsline {subsubsection}{\numberline {2.6.4}Testování}{17}{subsubsection.2.6.4}%
+\contentsline {subsection}{\numberline {2.7}Relační model databáze}{17}{subsection.2.7}%
+\contentsline {section}{\numberline {3}Programátorská příručka}{19}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Klíčové algoritmy a implementace}{19}{subsection.3.1}%
+\contentsline {subsubsection}{\numberline {3.1.1}Autentizace pomocí JWT}{19}{subsubsection.3.1.1}%
+\contentsline {subsubsection}{\numberline {3.1.2}Atomické transakce při rezervaci}{19}{subsubsection.3.1.2}%
+\contentsline {subsubsection}{\numberline {3.1.3}Zpracování Stripe webhooků}{19}{subsubsection.3.1.3}%
+\contentsline {subsubsection}{\numberline {3.1.4}Proces refundace}{20}{subsubsection.3.1.4}%
+\contentsline {subsubsection}{\numberline {3.1.5}Generování PDF vstupenek}{20}{subsubsection.3.1.5}%
+\contentsline {subsection}{\numberline {3.2}Možnosti rozšíření aplikace}{20}{subsection.3.2}%
+\contentsline {subsubsection}{\numberline {3.2.1}Přidání nové databázové entity}{20}{subsubsection.3.2.1}%
+\contentsline {subsubsection}{\numberline {3.2.2}Přidání nového typu emailové notifikace}{21}{subsubsection.3.2.2}%
+\contentsline {subsubsection}{\numberline {3.2.3}Integrace nové platební metody}{21}{subsubsection.3.2.3}%
+\contentsline {subsubsection}{\numberline {3.2.4}Přidání nové uživatelské role}{21}{subsubsection.3.2.4}%
+\contentsline {subsection}{\numberline {3.3}Testování}{21}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Deployment}{21}{subsection.3.4}%
+\contentsline {section}{\numberline {4}Uživatelská příručka}{22}{section.4}%
+\contentsline {subsection}{\numberline {4.1}První kroky}{22}{subsection.4.1}%
+\contentsline {subsubsection}{\numberline {4.1.1}Registrace}{22}{subsubsection.4.1.1}%
+\contentsline {subsubsection}{\numberline {4.1.2}Přihlášení}{22}{subsubsection.4.1.2}%
+\contentsline {subsection}{\numberline {4.2}Prohlížení a rezervace akcí}{22}{subsection.4.2}%
+\contentsline {subsubsection}{\numberline {4.2.1}Prohlížení akcí}{22}{subsubsection.4.2.1}%
+\contentsline {subsubsection}{\numberline {4.2.2}Detail a rezervace}{22}{subsubsection.4.2.2}%
+\contentsline {subsection}{\numberline {4.3}Správa rezervací}{23}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Reklamace}{23}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}Funkce pro organizátory}{23}{subsection.4.5}%
+\contentsline {subsubsection}{\numberline {4.5.1}Vytvoření akce}{23}{subsubsection.4.5.1}%
+\contentsline {subsubsection}{\numberline {4.5.2}Správa akcí}{23}{subsubsection.4.5.2}%
+\contentsline {subsection}{\numberline {4.6}Funkce pro administrátory}{24}{subsection.4.6}%
+\contentsline {subsubsection}{\numberline {4.6.1}Správa uživatelů}{24}{subsubsection.4.6.1}%
+\contentsline {subsubsection}{\numberline {4.6.2}Správa akcí a reklamací}{24}{subsubsection.4.6.2}%
+\contentsline {subsection}{\numberline {4.7}Diagram případu použití}{24}{subsection.4.7}%

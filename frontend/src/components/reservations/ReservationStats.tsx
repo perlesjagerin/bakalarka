@@ -2,7 +2,7 @@ import { formatPriceStrict } from '../../utils/formatters';
 
 interface Reservation {
   id: string;
-  status: 'PENDING' | 'PAID' | 'CANCELLED' | 'REFUNDED';
+  status: 'PENDING' | 'CONFIRMED' | 'PAID' | 'CANCELLED' | 'REFUNDED';
   totalAmount: number;
 }
 
