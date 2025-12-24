@@ -98,21 +98,13 @@ program=itk,
 
 %% Anotace práce, včetně anglické (obvykle překlad z jazyka
 %% práce). Jeden odstavec!
-\annotation{Ukázkový text závěrečné práce na Katedře informatiky
-  Přírodovědecké fakulty Univerzity Palackého v Olomouci, který je
-  zároveň dokumentací stylu pro text práce v \LaTeX{}u. Zdrojový text
-  v \LaTeX{}u je doporučeno použít jako šablonu pro text skutečné
-  závěrečné práce studenta.}
+\annotation{Bakalářská práce se zabývá návrhem a implementací webové aplikace pro rezervaci vstupenek na studentské akce. Aplikace umožňuje organizátorům vytvářet a spravovat akce, uživatelům rezervovat a platit vstupenky online. Systém využívá moderní technologie jako React, Node.js, PostgreSQL a integruje platební bránu Stripe. Součástí je kompletní systém správy rezervací, reklamací, automatických emailových notifikací a generování PDF vstupenek s QR kódy. Práce zahrnuje i administrační rozhraní pro správu uživatelů a akcí.}
 
-\annotation[english]{Sample text of thesis at the \kitextdepten,
-  \kitextfacultyen, \kitextuniven{} and, at the same time,
-  documentation of the \LaTeX{} style for the text. The source text in
-  \LaTeX{} is recommended to be used as a template for real student's
-  thesis text.}
+\annotation[english]{This bachelor thesis focuses on the design and implementation of a web application for ticket reservation for student events. The application allows organizers to create and manage events, and users to reserve and pay for tickets online. The system uses modern technologies such as React, Node.js, PostgreSQL and integrates the Stripe payment gateway. It includes a complete reservation management system, complaints handling, automatic email notifications and PDF ticket generation with QR codes. The work also includes an administrative interface for user and event management.}
 
 %% Klíčová slova práce, včetně anglických. Oddělená (obvykle) středníkem.
-\keywords{styl textu; závěrečná práce; dokumentace; ukázkový text}
-\keywords[english]{text style; thesis; documentation; sample text}
+\keywords{webová aplikace; rezervační systém; vstupenky; React; Node.js; TypeScript; Stripe; PostgreSQL; studentské akce}
+\keywords[english]{web application; reservation system; tickets; React; Node.js; TypeScript; Stripe; PostgreSQL; student events}
 
 %% Volitelná specifikace příloh textu práce, i anglicky. Výchozí je
 %% 'elektronická data v systému katedry informatiky / electronic data
@@ -204,54 +196,160 @@ Platforma bude disponovat několika uživatelskými rolemi, z nichž každá bud
 Běžný \textbf{uživatel} bude mít přístup k prohlížení nabízených akcí a rezervaci vstupenek, čímž se usnadní zapojení do studentských aktivit.
 
 \subsection{Správa událostí}
-V rámci správy událostí bude organizátor moci přidávat nové akce vyplněním detailního formuláře, který bude obsahovat všechny potřebné specifikace události, jako je datum, čas, místo konání a popis. 
+V rámci správy událostí může organizátor přidávat nové akce vyplněním detailního formuláře, který obsahuje všechny potřebné specifikace události - název, popis, datum a čas (startDate, endDate), místo konání, kategorii, cenu vstupenky a celkový počet dostupných vstupenek.
 
-Po zveřejnění bude mít možnost upravovat údaje akce, což je užitečné pro případné změny v programu nebo organizační detaily. 
+Po zveřejnění má organizátor možnost upravovat údaje akce, měnit její stav (DRAFT, PUBLISHED, CANCELLED, COMPLETED) a sledovat statistiky - počet prodaných vstupenek, celkový příjem a zbývající kapacitu.
 
-V případě potřeby zrušení události může organizátor tuto možnost využít a současně informovat všechny registrované účastníky o změně nebo zrušení prostřednictvím automatizovaných oznámení.
+V případě potřeby zrušení události (stav CANCELLED) systém automaticky informuje všechny registrované účastníky emailovou notifikací a v případě placených akcí spustí proces refundace. Aktuálně dostupné vstupenky se automaticky aktualizují při každé nové rezervaci.
 
 \subsection{Rezervace}
-Uživatelé budou moci prohlížet dostupné akce prostřednictvím přehledného seznamu, který nabídne různé možnosti filtrování a vyhledávání podle specifických kritérií, jako jsou datum, kategorie nebo místo konání. 
+Uživatelé mohou prohlížet dostupné akce prostřednictvím přehledného seznamu s možností filtrování podle kategorií (Hudba, Divadlo, Film, Sport, Technologie, Vzdělávání, Jiné) a vyhledávání podle názvu akce. Každá akce zobrazuje základní informace včetně počtu zbývajících vstupenek a ceny.
 
-Při rezervaci vstupenek si uživatel vybere požadovaný počet vstupenek a vyplní nezbytné osobní údaje. 
+Detail akce poskytuje kompletní informace o události včetně popisu, data a času, místa konání a statistik. Uživatel si zde může vybrat počet vstupenek (max. 10 na jednu rezervaci) a přejít k platbě.
 
-Pokud by uživatel potřeboval změnit nebo zrušit svou rezervaci, může to snadno provést přes svůj uživatelský účet, což poskytuje vysokou míru flexibility a pohodlí.
+Při placených akcích je implementován Stripe Payment Intent flow s bezpečným platebním formulářem (Stripe Elements). Po úspěšné platbě potvrzené přes Stripe webhook je rezervace automaticky označena jako PAID a uživatel obdrží emailové potvrzení s rezervačním kódem.
+
+Pro akce zdarma (ticketPrice = 0) je rezervace okamžitě potvrzena bez platebního procesu. Uživatel může své rezervace spravovat na stránce "Moje rezervace", kde může rezervaci zrušit (refundace pro placené rezervace) nebo stáhnout PDF vstupenku s QR kódem.
 
 \subsection{Reklamace a vrácení vstupenek}
-Pro případ reklamace bude k dispozici uživatelský formulář, který umožní uživatelům podat reklamaci na vstupenky nebo služby spojené s akcí. Tento proces bude zahrnovat postup schválení, který zajistí, že všechny reklamace budou důkladně posouzeny a vyřešeny spravedlivě. 
+Systém reklamací umožňuje uživatelům podat reklamaci na rezervovanou akci prostřednictvím formuláře, který vyžaduje popis problému. Reklamace prochází těmito stavy:
+\begin{itemize}
+    \item \textbf{SUBMITTED} - Nově podaná reklamace čekající na posouzení
+    \item \textbf{IN\_REVIEW} - Reklamace je v procesu posuzování administrátorem
+    \item \textbf{RESOLVED} - Reklamace byla schválena, proběhla refundace
+    \item \textbf{REJECTED} - Reklamace byla zamítnuta
+\end{itemize}
 
-Vrácení peněz bude řešeno prostřednictvím automatizovaného systému, který zajistí rychlou a efektivní refundaci podle stanovených pravidel, což zvýší důvěru uživatelů v bezpečnost a spolehlivost platformy.
+Admin může v administračním rozhraní (\texttt{/admin/complaints}) prohlížet všechny reklamace, filtrovat podle statusu a reagovat na ně. Při vyřízení reklamace admin vyplní odpověď a volitelně zaškrtne checkbox pro automatickou refundaci.
+
+Pokud je reklamace schválena s refundací, systém automaticky:
+\begin{enumerate}
+    \item Provede Stripe refund (pouze pro placené akce)
+    \item Aktualizuje stav rezervace na CANCELLED
+    \item Zvýší počet dostupných vstupenek na akci
+    \item Odešle emailovou notifikaci uživateli s informací o refundaci
+\end{enumerate}
+
+Pro akce zdarma se provede pouze zrušení rezervace bez Stripe refundu. Všechny operace jsou atomické a zajištěné databázovou transakcí.
 
 \subsection{Návrh vhodných technologií}
 
 \subsubsection{Backend}
-Pro backend je vhodnou volbou \textbf{Node.js}, který se vyznačuje rychlým a efektivním asynchronním zpracováním. Tato vlastnost je klíčová pro aplikace, které musí zvládat vysokou zátěž na I/O operace, jako jsou rezervace a platby. Další výhodou je široká komunita a množství dostupných knihoven, které usnadňují rychlý vývoj a nasazení aplikace.
+Pro backend je použit \textbf{Node.js} s \textbf{TypeScript}, který se vyznačuje rychlým a efektivním asynchronním zpracováním. Tato vlastnost je klíčová pro aplikace, které musí zvládat vysokou zátěž na I/O operace, jako jsou rezervace a platby.
 
-V kombinaci s Node.js je ideální použít \textbf{Express.js}, což je jednoduchý a minimalistický framework, který umožňuje rychlý vývoj RESTful API. Tento framework je dobře podporován v komunitě Node.js a nabízí velkou flexibilitu při tvorbě serverových aplikací.
+V kombinaci s Node.js je použit \textbf{Express.js}, což je jednoduchý a minimalistický framework pro RESTful API. Pro práci s databází slouží \textbf{Prisma ORM}, který poskytuje type-safe přístup k datům a automatickou generaci TypeScript typů.
+
+Implementovány jsou i další knihovny: \textbf{Nodemailer} pro odesílání emailových notifikací, \textbf{PDFKit} pro generování PDF vstupenek, \textbf{QRCode} pro vytváření QR kódů na vstupenky a \textbf{bcryptjs} pro bezpečné hashování hesel.
 
 \subsubsection{Databáze}
-Pro ukládání dat je vhodná \textbf{PostgreSQL}, což je spolehlivá a výkonná relační databáze. Podporuje pokročilé funkce jako je transakční zpracování, což je důležité pro zajištění integrity dat při rezervacích a platbách. PostgreSQL je také dobře škálovatelná a podporuje komplexní dotazy, které mohou být potřebné pro analýzu dat.
+Pro ukládání dat je použita \textbf{PostgreSQL}, což je spolehlivá a výkonná relační databáze. Podporuje pokročilé funkce jako je transakční zpracování, což je klíčové pro zajištění integrity dat při rezervacích a platbách.
+
+Pro práci s databází slouží \textbf{Prisma ORM}, které poskytuje:
+\begin{itemize}
+    \item Type-safe přístup k datům s automatickým generováním TypeScript typů
+    \item Deklarativní databázové schéma
+    \item Automatické migrace databáze
+    \item Prisma Studio pro vizuální správu dat
+\end{itemize}
+
+Databáze obsahuje 7 hlavních modelů: User, Event, Reservation, Payment, Complaint, Ticket a RefreshToken.
 
 \subsubsection{Frontend}
-Na frontendu je vhodné použít \textbf{React}, což je vysoce výkonný a flexibilní frontendový framework. React umožňuje vytváření dynamických uživatelských rozhraní a díky komponentovému přístupu usnadňuje správu a opakované použití kódu.
+Na frontendu je použit \textbf{React 18} s \textbf{TypeScript}, což je vysoce výkonný a flexibilní frontendový framework. React umožňuje vytváření dynamických uživatelských rozhraní a díky komponentovému přístupu usnadňuje správu a opakované použití kódu.
 
-Pro stylování je výhodné využít \textbf{Tailwind CSS}, což je utility-first CSS framework. Tento framework umožňuje rychlé a efektivní stylování komponent a je vysoce přizpůsobitelný. Tailwind CSS také usnadňuje tvorbu responzivních a moderních uživatelských rozhraní.
+Jako build tool slouží \textbf{Vite}, který zajišťuje rychlý development server a optimalizovaný production build. Pro routing je použit \textbf{React Router v6} s lazy loading pro optimalizaci výkonu.
+
+Stav aplikace je řízen pomocí \textbf{Zustand} (lightweight state management) a \textbf{Axios} pro HTTP komunikaci s backendem. Formuláře využívají \textbf{React Hook Form} s \textbf{Zod} validací pro type-safe validaci dat.
+
+Pro stylování je využit \textbf{Tailwind CSS}, což je utility-first CSS framework umožňující rychlé a efektivní stylování s plnou responzivitou. Pro ikony slouží \textbf{Lucide React} a pro notifikace \textbf{React Hot Toast}.
 
 \subsubsection{Autentizace a autorizace}
-Pro autentizaci a autorizaci uživatelů je vhodné použít \textbf{JWT} (JSON Web Tokens). JWT poskytuje bezpečný a škálovatelný způsob autentizace a autorizace uživatelů. Umožňuje snadnou integraci s RESTful API a je vhodný pro aplikace s vysokou úrovní zabezpečení.
+Pro autentizaci a autorizaci uživatelů je implementován systém založený na \textbf{JWT} (JSON Web Tokens). Systém využívá dva typy tokenů:
+\begin{itemize}
+    \item \textbf{Access Token} - krátkodobý (15 minut), používaný pro autentizaci API požadavků
+    \item \textbf{Refresh Token} - dlouhodobý (7 dní), uložený v databázi, sloužící k obnovení access tokenu
+\end{itemize}
+
+Hesla jsou bezpečně hashována pomocí \textbf{bcryptjs} s salt rounds nastaveným na 10. Middleware \texttt{authenticate} chrání všechny chráněné API endpointy a automaticky ověřuje JWT tokeny.
 
 \subsubsection{Platby}
-Pro zpracování plateb je ideální \textbf{Stripe}, což je flexibilní a spolehlivá platební brána. Stripe podporuje různé platební metody a měny a nabízí robustní API pro integraci plateb do webových aplikací. Zajišťuje vysokou úroveň zabezpečení platebních transakcí.
+Pro zpracování plateb je implementována integrace se \textbf{Stripe}, což je flexibilní a spolehlivá platební brána. Implementace zahrnuje:
+\begin{itemize}
+    \item \textbf{Stripe Elements} - bezpečný platební formulář na frontendu
+    \item \textbf{Payment Intent API} - vytváření platebních intentů na backendu
+    \item \textbf{Webhook} - automatické potvrzování plateb přes Stripe webhook endpoint
+    \item \textbf{Refundace} - automatické vrácení peněz při schválení reklamace
+\end{itemize}
+
+Stripe zajišťuje PCI DSS compliance a podporuje různé platební metody. Pro akce zdarma (ticketPrice = 0) se platební proces přeskakuje a rezervace je okamžitě potvrzena.
 
 \subsubsection{Hosting a nasazení}
-Pro hosting a nasazení aplikace je vhodná platforma \textbf{Heroku}, která je jednoduchá a uživatelsky přívětivá platforma, která podporuje různé programovací jazyky a frameworky. Nabízí snadnou správu a škálovatelnost aplikací, což je klíčové pro rychlé nasazení a provozování aplikace.
+Aplikace je připravena pro nasazení na různé platformy. Pro development a lokální testování je připraven \textbf{Docker Compose} setup, který automaticky spustí frontend, backend, PostgreSQL databázi a Stripe CLI pro testování webhooků.
+
+Pro production deployment je aplikace připravena pro platformy jako:
+\begin{itemize}
+    \item \textbf{Heroku} - jednoduchá PaaS platforma s automatickým deploymentem
+    \item \textbf{Railway} - moderní alternativa k Heroku
+    \item \textbf{AWS/Azure} - pro enterprise deployment s vlastní konfigurací
+    \item \textbf{Vercel} (frontend) + \textbf{Render} (backend) - serverless architektura
+\end{itemize}
+
+V dokumentaci je připraven kompletní production checklist včetně nastavení environment proměnných, SSL certifikátů a databázových migrací.
+
+\subsection{Implementované pokročilé funkce}
+
+\subsubsection{Email notifikace}
+Systém automaticky odesílá emailové notifikace při klíčových událostech:
+\begin{itemize}
+    \item \textbf{Welcome email} - při registraci nového uživatele
+    \item \textbf{Reservation confirmation} - po úspěšné rezervaci s detaily akce
+    \item \textbf{Payment confirmation} - po potvrzení platby přes Stripe webhook
+    \item \textbf{Reservation cancellation} - při zrušení rezervace s informací o refundaci
+    \item \textbf{Event status change} - při změně stavu akce (pro organizátora)
+    \item \textbf{Complaint response} - při vyřízení reklamace
+\end{itemize}
+
+Všechny emaily mají profesionální HTML design s gradientním headerem, jsou responzivní a obsahují call-to-action buttony s odkazy do aplikace. Pro odesílání je použita knihovna Nodemailer s SMTP konfigurací (podporuje Gmail, Outlook, vlastní SMTP server).
+
+\subsubsection{PDF vstupenky s QR kódy}
+Každá potvrzená rezervace (status PAID) umožňuje stažení PDF vstupenky, která obsahuje:
+\begin{itemize}
+    \item Název a logo aplikace
+    \item Detaily akce (název, datum, místo)
+    \item Informace o uživateli (jméno, email)
+    \item Počet vstupenek a celková cena
+    \item QR kód s rezervačním kódem pro ověření při vstupu
+    \item Rezervační kód v textové podobě
+\end{itemize}
+
+PDF je generováno na backendu pomocí knihovny PDFKit s podporou Unicode znaků (Arial TTF font) a QR kód je vytvořen knihovnou qrcode. Vstupenka je automaticky stažena jako \texttt{vstupenka-\{reservationCode\}.pdf}.
+
+\subsubsection{Admin dashboard}
+Administrátoři mají přístup ke komplexnímu dashboardu s těmito funkcemi:
+\begin{itemize}
+    \item \textbf{Správa uživatelů} - zobrazení všech uživatelů, filtrování podle role (ADMIN, ORGANIZER, USER), aktivace/deaktivace účtů, ochrana admin účtů před deaktivací, statistiky počtu uživatelů podle rolí
+    \item \textbf{Správa všech akcí} - přehled akcí od všech organizátorů, možnost úpravy nebo smazání jakékoliv akce
+    \item \textbf{Správa reklamací} - centralizovaný přehled všech reklamací s možností filtrování, schvalování/zamítání, automatická refundace
+\end{itemize}
+
+\subsubsection{Testování}
+Projekt obsahuje komplexní testovací pokrytí:
+\begin{itemize}
+    \item \textbf{Frontend testy} - rozsáhlá sada unit testů (Vitest, React Testing Library) pokrývající komponenty, utility funkce a konstanty
+    \item \textbf{Backend testy} - integration testy (Jest, Supertest) testující všechny API endpointy s testovací PostgreSQL databází
+    \item \textbf{E2E testy} - Playwright testy pokrývající kompletní user flows (registrace, rezervace, platba)
+    \item \textbf{Performance testy} - Node.js skripty pro zátěžové testování API endpointů
+    \item \textbf{Security testy} - Testy pro SQL injection, XSS, CSRF, rate limiting
+\end{itemize}
+
+Celkové testovací pokrytí dosahuje vysokých hodnot na straně backendu i frontendu.
 
 \subsection{Diagram případu použití}
-\begin{figure}
+\begin{figure}[h!]
     \centering
-    \includegraphics[width=1\linewidth]{kidiplom//graphics/BAK1 - Use case diagram.png}
-    \caption{Diagram případu užití}
-    \label{fig:enter-label}
+    \includegraphics[width=0.85\textwidth]{graphics/Use case diagram - Rezervacni system.png}
+    \caption{Diagram případu použití - Rezervační systém}
+    \label{fig:usecase}
 \end{figure}
 
 

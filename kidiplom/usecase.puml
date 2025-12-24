@@ -1,0 +1,77 @@
+@startuml
+title Diagram případů užití - Rezervační systém
+
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+    BackgroundColor LightBlue
+    BorderColor DarkBlue
+    ArrowColor DarkBlue
+}
+
+actor "Návštěvník" as Visitor
+actor "Uživatel" as User
+actor "Organizátor" as Org
+actor "Administrátor" as Admin
+
+rectangle "Prohlížení akcí" {
+  usecase "Prohlížet\nakce" as UC1
+  usecase "Filtrovat podle\nkategorie" as UC2
+  usecase "Vyhledávat\nakce" as UC3
+}
+
+rectangle "Autentizace" {
+  usecase "Registrovat se" as UC4
+  usecase "Přihlásit se" as UC5
+}
+
+rectangle "Rezervace" {
+  usecase "Rezervovat\nvstupenky" as UC6
+  usecase "Platba přes\nStripe" as UC7
+  usecase "Stáhnout PDF\nvstupenku" as UC8
+  usecase "Zrušit\nrezerv aci" as UC9
+}
+
+rectangle "Správa akcí" {
+  usecase "Vytvořit\nakci" as UC10
+  usecase "Upravit/Zrušit\nakci" as UC11
+  usecase "Zobrazit\nstatistiky" as UC12
+}
+
+rectangle "Administrace" {
+  usecase "Spravovat\nuživatele" as UC13
+  usecase "Vyřizovat\nreklamace" as UC14
+  usecase "Spravovat\nvšechny akce" as UC15
+}
+
+' Vztahy aktérů
+User --|> Visitor
+Org --|> User
+Admin --|> User
+
+' Návštěvník
+Visitor --> UC1
+Visitor --> UC2
+Visitor --> UC3
+Visitor --> UC4
+
+' Uživatel
+User --> UC5
+User --> UC6
+User --> UC9
+
+' Organizátor
+Org --> UC10
+Org --> UC11
+Org --> UC12
+
+' Administrátor
+Admin --> UC13
+Admin --> UC14
+Admin --> UC15
+
+' Include vztahy
+UC6 ..> UC7 : <<include>>
+UC7 ..> UC8 : <<include>>
+
+@enduml
