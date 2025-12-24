@@ -364,6 +364,22 @@ Databázový model obsahuje 5 hlavních entit (User, Event, Reservation, Payment
 
 Architektura backendu je rozdělena do čtyř hlavních vrstev: Controllers (zpracování HTTP požadavků), Services (business logika), Middleware (autentizace, validace, error handling) a Database (Prisma ORM). Všechny služby sdílejí přístup k Prisma klientovi pro práci s databází. EmailService a TicketGenerator jsou pomocné třídy volané z různých služeb pro odesílání notifikací a generování PDF vstupenek.
 
+\subsection{Dokumentace}
+
+Pro účely splnění požadavků na zápočet byly vytvořeny dva klíčové dokumenty:
+
+\subsubsection{Programátorská příručka}
+Programátorská příručka (viz \texttt{docs/prirucka-programatorska.md}) obsahuje kompletní technickou dokumentaci pro vývojáře. Příručka popisuje architekturu aplikace s použitím MVC patternu, všechny datové struktury včetně databázových modelů, klíčové algoritmy jako JWT autentizaci, atomické transakce, Stripe webhook handling, proces refundace a generování PDF vstupenek s QR kódy.
+
+Dále jsou zde uvedeny možnosti rozšíření aplikace - přidání nových entit, notifikací, platebních metod a uživatelských rolí. Součástí je i dokumentace k testování (unit, integration a E2E testy) a k deployment procesu včetně Docker Compose setupu a cloud deployment možností (Heroku, Railway, AWS, Vercel + Render).
+
+\subsubsection{Uživatelská příručka}
+Uživatelská příručka (viz \texttt{docs/prirucka-uzivatelska.md}) poskytuje kompletní návod pro koncové uživatele všech rolí v systému. Příručka je rozdělena do kapitol pokrývajících registraci a přihlášení, prohlížení a vyhledávání akcí s filtrováním podle kategorií, proces rezervace vstupenek včetně platby kartou přes Stripe a zpracování akcí zdarma.
+
+Dále popisuje správu rezervací se stahováním PDF vstupenek s QR kódy, systém reklamací s automatickou refundací, funkce pro organizátory (vytváření, úprava a správa akcí, statistiky, zobrazení rezervací) a funkce pro administrátory (dashboard, správa uživatelů, správa všech akcí, vyřizování reklamací).
+
+Součástí je i sekce FAQ s odpověďmi na nejčastější dotazy a tipy pro efektivní využití platformy podle jednotlivých uživatelských rolí.
+
 \subsection{Diagram případu použití}
 \begin{figure}[h!]
     \centering
