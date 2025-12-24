@@ -18,6 +18,7 @@
 - čeká na platbu nedávej do celkového příjmu. Až je to zaplacený
 - kategorie akce hodit na dropdown?
 - profil - Invalid date
+- chyba při stahování vstupenky
 
 stripe listen --forward-to localhost:3001/api/payments/webhook
 npm run prisma:seed
