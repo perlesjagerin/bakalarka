@@ -344,6 +344,26 @@ Projekt obsahuje komplexní testovací pokrytí:
 
 Celkové testovací pokrytí dosahuje vysokých hodnot na straně backendu i frontendu.
 
+\subsection{Relační model databáze}
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.9\textwidth]{graphics/Database model.png}
+    \caption{Relační model databáze - 5 tabulek s vazbami}
+    \label{fig:dbmodel}
+\end{figure}
+
+Databázový model obsahuje 5 hlavních entit (User, Event, Reservation, Payment, Complaint) a 5 enumeračních typů pro stavy. Všechny tabulky využívají UUID primární klíče a obsahují časové razítko pro sledování vytvoření a aktualizace záznamů. Vztahy mezi tabulkami zajišťují referenční integritu a podporují kaskádové operace.
+
+\subsection{Diagram tříd}
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.95\textwidth]{graphics/Class diagram.png}
+    \caption{Diagram tříd - Backend struktura (MVC pattern)}
+    \label{fig:classdiagram}
+\end{figure}
+
+Architektura backendu je rozdělena do čtyř hlavních vrstev: Controllers (zpracování HTTP požadavků), Services (business logika), Middleware (autentizace, validace, error handling) a Database (Prisma ORM). Všechny služby sdílejí přístup k Prisma klientovi pro práci s databází. EmailService a TicketGenerator jsou pomocné třídy volané z různých služeb pro odesílání notifikací a generování PDF vstupenek.
+
 \subsection{Diagram případu použití}
 \begin{figure}[h!]
     \centering
