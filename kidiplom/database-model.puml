@@ -1,0 +1,130 @@
+@startuml
+title Diagram relačního modelu databáze
+
+!define table(x) class x << (T,#FFAAAA) >>
+!define enum(x) class x << (E,#AAFFAA) >>
+
+enum UserRole {
+  ADMIN
+  ORGANIZER
+  USER
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+  COMPLETED
+}
+
+enum ReservationStatus {
+  PENDING
+  PAID
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum ComplaintStatus {
+  SUBMITTED
+  IN_REVIEW
+  REJECTED
+  RESOLVED
+}
+
+table(User) {
+  + id : UUID <<PK>>
+  --
+  email : String <<UNIQUE>>
+  password : String
+  firstName : String
+  lastName : String
+  role : UserRole
+  isActive : Boolean
+  createdAt : DateTime
+  updatedAt : DateTime
+}
+
+table(Event) {
+  + id : UUID <<PK>>
+  --
+  title : String
+  description : String
+  location : String
+  startDate : DateTime
+  endDate : DateTime
+  category : String
+  imageUrl : String?
+  totalTickets : Int
+  availableTickets : Int
+  ticketPrice : Decimal
+  status : EventStatus
+  # organizerId : UUID <<FK>>
+  createdAt : DateTime
+  updatedAt : DateTime
+}
+
+table(Reservation) {
+  + id : UUID <<PK>>
+  --
+  # eventId : UUID <<FK>>
+  # userId : UUID <<FK>>
+  ticketCount : Int
+  totalAmount : Decimal
+  status : ReservationStatus
+  reservationCode : String <<UNIQUE>>
+  createdAt : DateTime
+  updatedAt : DateTime
+}
+
+table(Payment) {
+  + id : UUID <<PK>>
+  --
+  # reservationId : UUID <<FK>>
+  amount : Decimal
+  status : PaymentStatus
+  stripePaymentId : String?
+  paymentMethod : String?
+  createdAt : DateTime
+  updatedAt : DateTime
+}
+
+table(Complaint) {
+  + id : UUID <<PK>>
+  --
+  # reservationId : UUID <<FK>>
+  # userId : UUID <<FK>>
+  reason : String
+  description : String
+  status : ComplaintStatus
+  adminResponse : String?
+  refundIssued : Boolean
+  createdAt : DateTime
+  updatedAt : DateTime
+  resolvedAt : DateTime?
+}
+
+' Relationships
+User "1" -- "0..*" Event : organizes >
+User "1" -- "0..*" Reservation : makes >
+User "1" -- "0..*" Complaint : submits >
+
+Event "1" -- "0..*" Reservation : has >
+
+Reservation "1" -- "0..1" Payment : has >
+Reservation "1" -- "0..*" Complaint : subject of >
+
+' Enum relationships
+User -- UserRole
+Event -- EventStatus
+Reservation -- ReservationStatus
+Payment -- PaymentStatus
+Complaint -- ComplaintStatus
+
+@enduml

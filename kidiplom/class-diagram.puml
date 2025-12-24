@@ -1,0 +1,237 @@
+@startuml
+title Diagram tříd - Backend architektura
+
+package "Controllers" {
+  class AuthController {
+    + register(req, res): Promise<void>
+    + login(req, res): Promise<void>
+    + refresh(req, res): Promise<void>
+    + logout(req, res): Promise<void>
+  }
+  
+  class EventController {
+    + getAllEvents(req, res): Promise<void>
+    + getEventById(req, res): Promise<void>
+    + createEvent(req, res): Promise<void>
+    + updateEvent(req, res): Promise<void>
+    + deleteEvent(req, res): Promise<void>
+    + getOrganizerEvents(req, res): Promise<void>
+  }
+  
+  class ReservationController {
+    + createReservation(req, res): Promise<void>
+    + getUserReservations(req, res): Promise<void>
+    + cancelReservation(req, res): Promise<void>
+    + getReservationDetails(req, res): Promise<void>
+  }
+  
+  class PaymentController {
+    + createPaymentIntent(req, res): Promise<void>
+    + handleWebhook(req, res): Promise<void>
+    + refundPayment(req, res): Promise<void>
+  }
+  
+  class ComplaintController {
+    + createComplaint(req, res): Promise<void>
+    + getUserComplaints(req, res): Promise<void>
+    + updateComplaintStatus(req, res): Promise<void>
+    + getAllComplaints(req, res): Promise<void>
+  }
+  
+  class AdminController {
+    + getAllUsers(req, res): Promise<void>
+    + updateUserStatus(req, res): Promise<void>
+    + getUserStats(req, res): Promise<void>
+  }
+}
+
+package "Services" {
+  class AuthService {
+    + registerUser(data): Promise<User>
+    + loginUser(email, password): Promise<Tokens>
+    + refreshTokens(token): Promise<Tokens>
+    + logoutUser(userId): Promise<void>
+    - hashPassword(password): Promise<string>
+    - generateTokens(userId): Tokens
+  }
+  
+  class EventService {
+    + createEvent(data, organizerId): Promise<Event>
+    + updateEvent(id, data): Promise<Event>
+    + deleteEvent(id): Promise<void>
+    + getEvents(filters): Promise<Event[]>
+    + getEventStats(eventId): Promise<Stats>
+  }
+  
+  class ReservationService {
+    + createReservation(data): Promise<Reservation>
+    + cancelReservation(id, userId): Promise<void>
+    + getUserReservations(userId): Promise<Reservation[]>
+    - generateReservationCode(): string
+    - checkAvailability(eventId, count): Promise<boolean>
+  }
+  
+  class PaymentService {
+    + createPaymentIntent(amount): Promise<PaymentIntent>
+    + processWebhook(event): Promise<void>
+    + refundPayment(paymentId): Promise<Refund>
+    - updateReservationStatus(id, status): Promise<void>
+  }
+  
+  class EmailService {
+    + sendWelcomeEmail(user): Promise<void>
+    + sendReservationConfirmation(reservation): Promise<void>
+    + sendPaymentConfirmation(reservation): Promise<void>
+    + sendCancellationEmail(reservation): Promise<void>
+    + sendComplaintResponse(complaint): Promise<void>
+    - sendEmail(to, subject, html): Promise<void>
+  }
+  
+  class TicketGenerator {
+    + generateTicketPDF(reservation): Promise<Buffer>
+    - generateQRCode(code): Promise<string>
+    - createPDFDocument(data): PDFDocument
+  }
+}
+
+package "Middleware" {
+  class AuthMiddleware {
+    + verifyToken(req, res, next): void
+    + requireRole(roles): Middleware
+    - extractToken(req): string
+  }
+  
+  class ValidationMiddleware {
+    + validateRequest(schema): Middleware
+    + handleValidationErrors(req, res, next): void
+  }
+  
+  class ErrorMiddleware {
+    + errorHandler(err, req, res, next): void
+    + notFoundHandler(req, res): void
+  }
+}
+
+package "Models (Prisma)" {
+  class User {
+    + id: string
+    + email: string
+    + password: string
+    + firstName: string
+    + lastName: string
+    + role: UserRole
+    + isActive: boolean
+  }
+  
+  class Event {
+    + id: string
+    + title: string
+    + description: string
+    + location: string
+    + startDate: Date
+    + endDate: Date
+    + category: string
+    + totalTickets: number
+    + availableTickets: number
+    + ticketPrice: Decimal
+    + status: EventStatus
+  }
+  
+  class Reservation {
+    + id: string
+    + ticketCount: number
+    + totalAmount: Decimal
+    + status: ReservationStatus
+    + reservationCode: string
+  }
+  
+  class Payment {
+    + id: string
+    + amount: Decimal
+    + status: PaymentStatus
+    + stripePaymentId: string
+  }
+  
+  class Complaint {
+    + id: string
+    + reason: string
+    + description: string
+    + status: ComplaintStatus
+    + adminResponse: string
+    + refundIssued: boolean
+  }
+}
+
+package "Routes" {
+  class AuthRoutes {
+    + setupRoutes(): Router
+  }
+  
+  class EventRoutes {
+    + setupRoutes(): Router
+  }
+  
+  class ReservationRoutes {
+    + setupRoutes(): Router
+  }
+  
+  class PaymentRoutes {
+    + setupRoutes(): Router
+  }
+}
+
+package "Utils" {
+  class Database {
+    + prisma: PrismaClient
+    + connect(): Promise<void>
+    + disconnect(): Promise<void>
+  }
+  
+  class Logger {
+    + info(message): void
+    + error(message, error): void
+    + warn(message): void
+  }
+}
+
+' Controller -> Service relationships
+AuthController --> AuthService
+AuthController --> EmailService
+EventController --> EventService
+ReservationController --> ReservationService
+ReservationController --> EmailService
+PaymentController --> PaymentService
+PaymentController --> EmailService
+ComplaintController --> EmailService
+AdminController --> AuthService
+
+' Service -> Model relationships
+AuthService --> User
+EventService --> Event
+ReservationService --> Reservation
+ReservationService --> Event
+PaymentService --> Payment
+PaymentService --> Reservation
+TicketGenerator --> Reservation
+
+' Routes -> Controller relationships
+AuthRoutes --> AuthController
+EventRoutes --> EventController
+ReservationRoutes --> ReservationController
+PaymentRoutes --> PaymentController
+
+' Middleware usage
+AuthRoutes --> AuthMiddleware
+EventRoutes --> AuthMiddleware
+ReservationRoutes --> AuthMiddleware
+AuthRoutes --> ValidationMiddleware
+EventRoutes --> ValidationMiddleware
+
+' Service -> Utils relationships
+AuthService --> Database
+EventService --> Database
+ReservationService --> Database
+PaymentService --> Database
+EmailService --> Logger
+
+@enduml
