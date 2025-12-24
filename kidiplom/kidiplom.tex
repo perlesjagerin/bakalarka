@@ -364,21 +364,163 @@ Databázový model obsahuje 5 hlavních entit (User, Event, Reservation, Payment
 
 Architektura backendu je rozdělena do čtyř hlavních vrstev: Controllers (zpracování HTTP požadavků), Services (business logika), Middleware (autentizace, validace, error handling) a Database (Prisma ORM). Všechny služby sdílejí přístup k Prisma klientovi pro práci s databází. EmailService a TicketGenerator jsou pomocné třídy volané z různých služeb pro odesílání notifikací a generování PDF vstupenek.
 
-\subsection{Dokumentace}
+\section{Programátorská příručka}
 
-Pro účely splnění požadavků na zápočet byly vytvořeny dva klíčové dokumenty:
+Tato kapitola slouží jako technická dokumentace pro vývojáře, kteří chtějí rozumět struktuře aplikace, upravit ji nebo ji rozšířit.
 
-\subsubsection{Programátorská příručka}
-Programátorská příručka (viz \texttt{docs/prirucka-programatorska.md}) obsahuje kompletní technickou dokumentaci pro vývojáře. Příručka popisuje architekturu aplikace s použitím MVC patternu, všechny datové struktury včetně databázových modelů, klíčové algoritmy jako JWT autentizaci, atomické transakce, Stripe webhook handling, proces refundace a generování PDF vstupenek s QR kódy.
+\subsection{Klíčové algoritmy a implementace}
 
-Dále jsou zde uvedeny možnosti rozšíření aplikace - přidání nových entit, notifikací, platebních metod a uživatelských rolí. Součástí je i dokumentace k testování (unit, integration a E2E testy) a k deployment procesu včetně Docker Compose setupu a cloud deployment možností (Heroku, Railway, AWS, Vercel + Render).
+\subsubsection{Autentizace pomocí JWT}
 
-\subsubsection{Uživatelská příručka}
-Uživatelská příručka (viz \texttt{docs/prirucka-uzivatelska.md}) poskytuje kompletní návod pro koncové uživatele všech rolí v systému. Příručka je rozdělena do kapitol pokrývajících registraci a přihlášení, prohlížení a vyhledávání akcí s filtrováním podle kategorií, proces rezervace vstupenek včetně platby kartou přes Stripe a zpracování akcí zdarma.
+Systém využívá JSON Web Tokens pro autentizaci uživatelů. Implementace zahrnuje dva typy tokenů:
 
-Dále popisuje správu rezervací se stahováním PDF vstupenek s QR kódy, systém reklamací s automatickou refundací, funkce pro organizátory (vytváření, úprava a správa akcí, statistiky, zobrazení rezervací) a funkce pro administrátory (dashboard, správa uživatelů, správa všech akcí, vyřizování reklamací).
+\textbf{Access Token} je krátkodobý token s platností 15 minut, používaný pro autentizaci API požadavků. Token obsahuje identifikátor uživatele (userId) a je podepsán tajným klíčem uloženým v prostředí (JWT\_SECRET).
 
-Součástí je i sekce FAQ s odpověďmi na nejčastější dotazy a tipy pro efektivní využití platformy podle jednotlivých uživatelských rolí.
+\textbf{Refresh Token} je dlouhodobý token s platností 7 dní, uložený v databázi. Slouží k obnovení access tokenu bez nutnosti opětovného přihlášení. Token je podepsán samostatným tajným klíčem (JWT\_REFRESH\_SECRET).
+
+Middleware pro ověření tokenu extrahuje token z Authorization hlavičky HTTP požadavku, ověří jeho platnost a dekóduje obsah. V případě úspěšného ověření přidá identifikátor uživatele do požadavku a pokračuje v zpracování. Při neplatném nebo chybějícím tokenu vrací chybu 401 (Unauthorized) nebo 403 (Forbidden).
+
+\subsubsection{Atomické transakce při rezervaci}
+
+Vytvoření rezervace vyžaduje několik databázových operací, které musí být provedeny atomicky. Prisma ORM poskytuje transakční mechanismus zajišťující, že buď proběhnou všechny operace, nebo žádná.
+
+Proces rezervace zahrnuje tyto kroky: Nejprve se kontroluje dostupnost vstupenek načtením akce z databáze. Pokud je dostupný počet menší než požadovaný, transakce se zruší s chybovou hláškou. Následně se snižuje počet dostupných vstupenek aktualizací pole availableTickets. Poté se vytváří nový záznam rezervace s vygenerovaným unikátním rezervačním kódem. Status rezervace je nastaven na PENDING pro placené akce nebo PAID pro akce zdarma. Nakonec se vytváří záznam platby propojený s rezervací.
+
+Pokud jakýkoliv krok selže, celá transakce se automaticky vrátí zpět (rollback) a databáze zůstane v konzistentním stavu.
+
+\subsubsection{Zpracování Stripe webhooků}
+
+Stripe odesílá webhooky pro informování o změnách stavu plateb. Implementace webhook endpointu zajišťuje automatické potvrzení plateb.
+
+Při přijetí webhooku se nejprve ověří podpis požadavku pomocí Stripe webhook secret klíče. Tím se zajistí, že požadavek skutečně pochází ze Stripe a nebyl modifikován.
+
+Pro událost payment\_intent.succeeded se v databázové transakci vyhledá platba podle Stripe Payment Intent ID, aktualizuje se její status na COMPLETED, aktualizuje se status rezervace na PAID a odešle se potvrzující email uživateli s detaily rezervace a odkazem na stažení vstupenky.
+
+Pro událost payment\_intent.payment\_failed se analogicky zpracovává neúspěšná platba aktualizací statusu na FAILED a odesláním informačního emailu.
+
+\subsubsection{Proces refundace}
+
+Refundace je komplexní proces vyžadující koordinaci mezi Stripe API, databází a emailovým systémem. Celý proces probíhá v databázové transakci.
+
+Proces začíná načtením rezervace včetně propojené platby a akce. Pokud je rezervace placená (totalAmount > 0), provede se Stripe refund voláním Stripe API s Payment Intent ID. Po úspěšné refundaci se aktualizuje status platby na REFUNDED.
+
+Následně se aktualizuje status rezervace na REFUNDED nebo CANCELLED podle kontextu. Vrátí se vstupenky do akce zvýšením pole availableTickets o počet vstupenek z rezervace. Nakonec se odešle email uživateli s potvrzením refundace a informací o vrácení peněz.
+
+Pro akce zdarma se Stripe refund přeskočí a provádí se pouze zrušení rezervace a vrácení vstupenek.
+
+\subsubsection{Generování PDF vstupenek}
+
+PDF vstupenka je generována na backendu pomocí knihovny PDFKit s integrovaným QR kódem.
+
+Proces začíná vygenerováním QR kódu obsahujícího JSON data s rezervačním kódem, ID akce a ID uživatele. QR kód je vytvořen jako Data URL obrázek pomocí knihovny qrcode.
+
+Poté se vytváří PDF dokument s nastavenou velikostí A4 a okraji 50 bodů. Dokument používá Arial font pro podporu českých znaků (Unicode). Obsah PDF zahrnuje hlavičku s nadpisem "Vstupenka" a názvem akce, detaily události (místo, datum, počet vstupenek, celkovou cenu), vložený QR kód v rozměrech 200x200 bodů a rezervační kód v textové podobě pro ruční ověření.
+
+PDF je generováno do paměťového bufferu a vráceno jako binární data připravená ke stažení. Soubor je pojmenován podle vzoru vstupenka-XXXXXXXX.pdf, kde XXXXXXXX je rezervační kód.
+
+\subsection{Možnosti rozšíření aplikace}
+
+\subsubsection{Přidání nové databázové entity}
+
+Pro přidání nové entity je třeba nejprve aktualizovat Prisma schema soubor přidáním nového modelu s definicí polí a relací. Následně se spustí migrace databáze příkazem npx prisma migrate dev. Vytvoří se service třída s metodami pro CRUD operace. Implementuje se controller pro zpracování HTTP požadavků. A nakonec se přidají API routes pro nové endpointy.
+
+\subsubsection{Přidání nového typu emailové notifikace}
+
+EmailService se rozšíří o novou metodu pro odesílání specifického typu emailu. Vytvoří se HTML template pro daný typ emailu s responzivním designem. Nová metoda se zavolá z příslušného service při vzniku události.
+
+\subsubsection{Integrace nové platební metody}
+
+Pro integraci další platební brány se vytvoří nový service pro konkrétní provider (např. PayPal). Implementují se metody pro vytvoření platby a zpracování webhooků. PaymentService se aktualizuje pro podporu více platebních metod s podmíněným větvením podle zvolené metody.
+
+\subsubsection{Přidání nové uživatelské role}
+
+V Prisma schema se rozšíří enum UserRole o novou hodnotu. Middleware pro kontrolu rolí se aktualizuje pro podporu nové role. Na příslušných API endpointech se přidá role do povolených rolí pomocí roleMiddleware.
+
+\subsection{Testování}
+
+Projekt obsahuje tři úrovně testování. Frontend testy jsou implementovány pomocí Vitest a React Testing Library, pokrývají React komponenty, utility funkce a konstanty. Backend testy využívají Jest a Supertest pro integration testing všech API endpointů s testovací PostgreSQL databází. E2E testy jsou napsány v Playwright a testují kompletní user flows od registrace přes rezervaci až po platbu.
+
+\subsection{Deployment}
+
+Pro lokální vývoj je připraven Docker Compose setup automaticky spouštějící frontend, backend, PostgreSQL databázi a Stripe CLI. Pro production je aplikace připravena pro deployment na platformy jako Heroku, Railway, AWS/Azure nebo kombinaci Vercel (frontend) a Render (backend). Důležité je nastavení všech environment proměnných včetně databázových credentials, JWT tajných klíčů, Stripe API klíčů a SMTP konfigurace pro emaily.
+
+\section{Uživatelská příručka}
+
+Tato kapitola poskytuje kompletní návod pro koncové uživatele aplikace ve všech rolích.
+
+\subsection{První kroky}
+
+\subsubsection{Registrace}
+
+Pro vytvoření nového účtu je třeba otevřít aplikaci v prohlížeči a kliknout na tlačítko "Registrovat se". Ve formuláři se vyplní email, který bude sloužit jako přihlašovací jméno, heslo s minimální délkou 6 znaků, křestní jméno a příjmení. Po kliknutí na "Vytvořit účet" se zobrazí potvrzení a na uvedený email přijde uvítací zpráva.
+
+\subsubsection{Přihlášení}
+
+Přihlášení probíhá na hlavní stránce kliknutím na "Přihlásit se", zadáním emailu a hesla a potvrzením tlačítkem "Přihlásit". Po úspěšném přihlášení dojde k automatickému přesměrování na domovskou stránku s přehledem akcí.
+
+\subsection{Prohlížení a rezervace akcí}
+
+\subsubsection{Prohlížení akcí}
+
+Hlavní stránka zobrazuje seznam všech dostupných akcí. Každá karta obsahuje název akce, datum a čas konání, místo, kategorii, cenu vstupenky a počet dostupných vstupenek.
+
+Akce lze filtrovat podle kategorií: Hudba (koncerty, festivaly), Divadlo (představení), Film (projekce), Sport (sportovní události), Technologie (meetupy, hackathony), Vzdělávání (přednášky, workshopy) a Jiné (ostatní akce). Filtr se aktivuje kliknutím na příslušné tlačítko kategorie.
+
+Pro vyhledávání konkrétní akce slouží vyhledávací pole v horní části stránky. Výsledky se filtrují automaticky při zadávání textu.
+
+\subsubsection{Detail a rezervace}
+
+Kliknutím na kartu akce se zobrazí detail s úplným popisem, obrázkem, informacemi o organizátorovi a tlačítkem pro rezervaci. Pro vytvoření rezervace se klikne na "Rezervovat vstupenky", vybere počet vstupenek (maximum 10 kusů na rezervaci), zkontroluje celková cena a potvrdí rezervace.
+
+U placených akcí následuje platební proces. Otevře se formulář Stripe Elements pro bezpečné zadání platební karty. Po zadání čísla karty, data expirace a CVC kódu se platba potvrdí tlačítkem "Zaplatit". Pro akce zdarma se rezervace potvrdí okamžitě bez platebního procesu.
+
+Po úspěšné platbě se zobrazí potvrzovací zpráva, na email přijde potvrzení a uživatel je přesměrován na stránku "Moje rezervace".
+
+\subsection{Správa rezervací}
+
+V sekci "Moje rezervace" je k dispozici přehled všech rezervací s jejich statusy: Čeká na platbu (rezervace vytvořena, čeká se na dokončení platby), Zaplaceno (platba úspěšná, vstupenka aktivní), Zrušeno (rezervace zrušena) a Refundováno (rezervace zrušena a peníze vráceny).
+
+U zaplacených rezervací je k dispozici tlačítko "Stáhnout vstupenku", které stáhne PDF soubor obsahující QR kód pro skenování při vstupu, detaily akce, jméno uživatele, počet vstupenek a rezervační kód.
+
+Aktivní rezervaci lze zrušit tlačítkem "Zrušit rezervaci". Systém automaticky vrátí vstupenky do eventu, spustí refundaci přes Stripe u placených akcí, odešle email s potvrzením a změní stav na "Refundováno". Refundace může trvat 5-10 pracovních dní podle banky.
+
+\subsection{Reklamace}
+
+Pro podání reklamace se v seznamu "Moje rezervace" najde příslušná rezervace a klikne na "Podat reklamaci". Ve formuláři se vybere důvod reklamace z nabízených možností a vyplní podrobný popis problému.
+
+Reklamace prochází těmito stavy: Podáno (nově vytvořená reklamace), V řešení (administrátor reklamaci řeší), Vyřízeno (schváleno, proběhla refundace) a Zamítnuto (reklamace zamítnuta).
+
+Po vyřízení uživatel obdrží email s odpovědí administrátora a v případě schválení automatickou refundaci.
+
+\subsection{Funkce pro organizátory}
+
+Uživatelé s rolí Organizátor mají přístup k dalším funkcím v sekci "Moje akce".
+
+\subsubsection{Vytvoření akce}
+
+Pro vytvoření nové akce se vyplní formulář obsahující název, podrobný popis s možností formátování, místo konání, datum a čas začátku, datum a čas konce, kategorii z nabídky, volitelný odkaz na obrázek, celkový počet vstupenek (kapacitu) a cenu vstupenky v korunách (0 pro akce zdarma).
+
+Akce je vytvořena ve stavu "Koncept" a není veřejně viditelná až do publikování.
+
+\subsubsection{Správa akcí}
+
+U vytvořených akcí jsou k dispozici tyto operace: Upravit umožňuje změnit údaje akce, přičemž některé údaje nelze měnit po vytvoření rezervací. Publikovat změní stav z "Koncept" na "Publikováno" a učiní akci viditelnou všem uživatelům. Zrušit akci změní stav na "Zrušeno", automaticky zruší všechny rezervace, provede refundace a odešle emaily účastníkům.
+
+Zobrazit statistiky ukazuje celkový počet rezervací, počet prodaných vstupenek, celkovou výši tržeb a obsazenost v procentech.
+
+Zobrazit rezervace poskytuje seznam všech rezervací s jmény zákazníků, emaily, počty vstupenek, statusy a rezervačními kódy, což slouží k ověření při vstupu na akci.
+
+\subsection{Funkce pro administrátory}
+
+Administrátoři mají plný přístup k systému včetně dashboardu zobrazujícího celkové statistiky: počet uživatelů podle rolí, počet akcí podle stavů, počet rezervací a počet nevyřízených reklamací.
+
+\subsubsection{Správa uživatelů}
+
+V sekci "Uživatelé" je k dispozici seznam všech uživatelů s možností filtrování podle role, aktivace nebo deaktivace účtu a zobrazení detailních informací. Administrátorské účty jsou chráněny proti deaktivaci.
+
+\subsubsection{Správa akcí a reklamací}
+
+Administrátoři vidí akce od všech organizátorů a mohou je upravovat nebo mazat. V sekci "Reklamace" je centralizovaný přehled všech reklamací s možností změny stavu na "V řešení", napsání odpovědi pro zákazníka a finálního rozhodnutí: "Vyřízeno" provede automatickou refundaci, "Zamítnuto" ukončí reklamaci bez vrácení peněz. Zákazník obdrží email s odpovědí v obou případech.
 
 \subsection{Diagram případu použití}
 \begin{figure}[h!]
