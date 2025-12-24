@@ -1,0 +1,56 @@
+@startuml
+skinparam backgroundColor #FEFEFE
+skinparam handwritten false
+skinparam defaultFontSize 11
+skinparam arrowColor #2C3E50
+skinparam actorBorderColor #2C3E50
+
+title Proces autentizace pomocí JWT
+
+actor "Uživatel" as User
+participant "Frontend\n(React)" as Frontend
+participant "Backend\n(Express)" as Backend
+database "PostgreSQL" as DB
+
+== Registrace ==
+User -> Frontend: Vyplnění registračního formuláře
+Frontend -> Backend: POST /api/auth/register\n(email, password, jméno)
+Backend -> Backend: Hashování hesla (bcrypt)
+Backend -> DB: Vytvoření uživatele
+Backend --> Frontend: 201 Created
+Frontend --> User: Potvrzení registrace
+
+== Přihlášení ==
+User -> Frontend: Zadání emailu a hesla
+Frontend -> Backend: POST /api/auth/login
+Backend -> DB: Ověření uživatele
+Backend -> Backend: Vygenerování JWT tokenů:\n- Access (15 min)\n- Refresh (7 dní)
+Backend -> DB: Uložení Refresh tokenu
+Backend --> Frontend: Access Token + Refresh Token
+Frontend -> Frontend: Uložení tokenů\n(localStorage)
+Frontend --> User: Přesměrování na Dashboard
+
+== Autorizovaný požadavek ==
+User -> Frontend: Interakce s aplikací
+Frontend -> Backend: API požadavek\n+ Authorization: Bearer <AccessToken>
+Backend -> Backend: Ověření Access tokenu\n(JWT verify)
+Backend -> DB: Načtení dat
+Backend --> Frontend: Data + 200 OK
+Frontend --> User: Zobrazení dat
+
+== Refresh Access tokenu ==
+Frontend -> Backend: POST /api/auth/refresh\n+ Refresh Token
+Backend -> DB: Ověření Refresh tokenu
+Backend -> Backend: Vygenerování nového\nAccess tokenu
+Backend --> Frontend: Nový Access Token
+Frontend -> Frontend: Uložení tokenu
+
+== Odhlášení ==
+User -> Frontend: Kliknutí na Odhlásit
+Frontend -> Backend: POST /api/auth/logout
+Backend -> DB: Smazání Refresh tokenu
+Backend --> Frontend: 200 OK
+Frontend -> Frontend: Smazání tokenů z localStorage
+Frontend --> User: Přesměrování na přihlášení
+
+@enduml

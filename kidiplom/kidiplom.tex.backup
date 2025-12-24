@@ -60,7 +60,7 @@ program=itk,
   biblatex,
 %  language=english,
 %  font=sans,
-  figures,
+  figures=false,
 %  tables=false,
 %  theorems,
 %  sourcecodes,
@@ -250,7 +250,7 @@ Pokud je reklamace schválena s refundací, systém automaticky:
 
 Pro akce zdarma se provede pouze zrušení rezervace bez Stripe refundu. Všechny operace jsou atomické a zajištěné databázovou transakcí.
 
-\subsection{Popis použitých technologií}
+\subsection{Návrh vhodných technologií}
 
 \subsubsection{Backend}
 Pro backend je použit \textbf{Node.js} s \textbf{TypeScript}, který se vyznačuje rychlým a efektivním asynchronním zpracováním. Tato vlastnost je klíčová pro aplikace, které musí zvládat vysokou zátěž na I/O operace, jako jsou rezervace a platby.
@@ -394,7 +394,7 @@ Databázový model obsahuje 5 hlavních entit (User, Event, Reservation, Payment
 \subsection{Diagram tříd}
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=1.0\textwidth]{graphics/class-diagram.png}
+    \includegraphics[width=0.95\textwidth]{graphics/Class diagram.png}
     \caption{Diagram tříd - Backend struktura (MVC pattern)}
     \label{fig:classdiagram}
 \end{figure}

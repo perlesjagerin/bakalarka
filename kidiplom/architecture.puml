@@ -1,0 +1,106 @@
+@startuml
+!define RECTANGLE class
+
+skinparam backgroundColor #FEFEFE
+skinparam handwritten false
+skinparam defaultFontSize 11
+skinparam componentStyle rectangle
+
+title Třívrstvá architektura aplikace
+
+package "Presentation Layer" <<Frame>> {
+    component "React 18" as React {
+        [Pages\n(React Router)]
+        [Components]
+        [Custom Hooks]
+        [Zustand Store]
+    }
+    
+    component "Stripe Elements" as StripeUI {
+        [Payment Form]
+    }
+}
+
+package "API Layer" <<Frame>> {
+    component "Express.js Backend" as Backend {
+        [API Routes]
+        [Controllers]
+        [Services]
+        [Middleware]
+    }
+}
+
+package "Data Layer" <<Frame>> {
+    database "PostgreSQL" as DB {
+        [Users]
+        [Events]
+        [Reservations]
+        [Payments]
+        [Complaints]
+    }
+}
+
+package "External Services" <<Frame>> {
+    component "Stripe API" as Stripe {
+        [Payment Intents]
+        [Webhooks]
+        [Refunds]
+    }
+    
+    component "Email Service" as Email {
+        [SMTP Server]
+        [Nodemailer]
+    }
+}
+
+' Presentation Layer vztahy
+React -down-> Backend : REST API\n(Axios HTTP client)
+StripeUI -down-> Stripe : Payment confirmation\n(clientSecret)
+
+' API Layer vztahy
+Backend -down-> DB : Prisma ORM\n(Type-safe queries)
+Backend -right-> Stripe : Payment Intent API\n(Node.js SDK)
+Backend -right-> Email : Send notifications\n(Nodemailer)
+
+' Webhooks
+Stripe -up-> Backend : Webhooks\n(payment events)
+
+note right of React
+  **Frontend technologie:**
+  - React 18.2.0
+  - TypeScript
+  - Vite (build tool)
+  - Tailwind CSS
+  - React Router v6
+  - Zustand (state)
+  - React Hook Form
+end note
+
+note left of Backend
+  **Backend technologie:**
+  - Node.js
+  - Express.js
+  - TypeScript
+  - Prisma ORM 5.7.1
+  - JWT autentizace
+  - bcryptjs (hashing)
+end note
+
+note bottom of DB
+  **Databáze:**
+  - PostgreSQL 14+
+  - 7 hlavních tabulek
+  - 5 enumeračních typů
+  - UUID primární klíče
+  - Referenční integrita
+end note
+
+note right of Stripe
+  **Stripe integrace:**
+  - Payment Intent flow
+  - Webhook signature verification
+  - Automatic refund processing
+  - PCI DSS compliance
+end note
+
+@enduml

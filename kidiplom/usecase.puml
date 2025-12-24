@@ -1,4 +1,5 @@
 @startuml
+skinparam handwritten false
 title Diagram případů užití - Rezervační systém
 
 skinparam actorStyle awesome

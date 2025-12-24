@@ -1,0 +1,77 @@
+@startuml
+skinparam backgroundColor #FEFEFE
+skinparam handwritten false
+skinparam defaultFontSize 11
+skinparam sequenceArrowThickness 2
+
+title Proces vytvoření rezervace a platby
+
+actor "Uživatel" as User
+participant "Frontend" as Frontend
+participant "Backend" as Backend
+participant "Stripe API" as Stripe
+database "PostgreSQL" as DB
+participant "Email Service" as Email
+
+User -> Frontend: Výběr akce a počtu vstupenek
+Frontend -> Backend: GET /api/events/:id
+Backend -> DB: Načtení detailu akce
+DB --> Backend: Data akce + dostupnost
+Backend --> Frontend: Event data
+Frontend --> User: Zobrazení detailu a formuláře
+
+== Vytvoření rezervace ==
+User -> Frontend: Potvrzení rezervace
+Frontend -> Backend: POST /api/reservations\n(eventId, ticketCount)
+
+Backend -> DB: BEGIN TRANSACTION
+
+Backend -> DB: Kontrola dostupnosti vstupenek
+alt Nedostatek vstupenek
+    DB --> Backend: availableTickets < ticketCount
+    Backend --> Frontend: 400 Bad Request
+    Frontend --> User: Chybová hláška
+else Vstupenky dostupné
+    Backend -> DB: UPDATE events\nSET availableTickets -= ticketCount
+    Backend -> DB: CREATE reservation\n(status: PENDING, reservationCode)
+    Backend -> DB: CREATE payment\n(status: PENDING)
+    Backend -> DB: COMMIT TRANSACTION
+    DB --> Backend: Reservation + Payment data
+    Backend --> Frontend: 201 Created + reservation
+end
+
+== Platba přes Stripe ==
+alt Placená akce (ticketPrice > 0)
+    Frontend -> Backend: POST /api/payments/create-intent
+    Backend -> Stripe: stripe.paymentIntents.create(amount)
+    Stripe --> Backend: Payment Intent + clientSecret
+    Backend -> DB: UPDATE payment\nSET stripePaymentId
+    Backend --> Frontend: clientSecret
+    
+    Frontend -> User: Zobrazení platebního formuláře\n(Stripe Elements)
+    User -> Frontend: Zadání platební karty
+    Frontend -> Stripe: stripe.confirmCardPayment(clientSecret)
+    Stripe --> Frontend: Payment success/failed
+    
+    Stripe -> Backend: POST /webhooks/stripe\n(payment_intent.succeeded)
+    Backend -> DB: BEGIN TRANSACTION
+    Backend -> DB: UPDATE payment\n(status: COMPLETED)
+    Backend -> DB: UPDATE reservation\n(status: PAID)
+    Backend -> DB: COMMIT TRANSACTION
+    Backend -> Email: sendPaymentConfirmation()
+    Email -> User: Email s potvrzením
+    
+    Frontend --> User: Potvrzení úspěšné platby
+    
+else Akce zdarma (ticketPrice = 0)
+    Backend -> DB: UPDATE reservation\n(status: PAID)
+    Backend -> DB: UPDATE payment\n(status: COMPLETED)
+    Backend -> Email: sendReservationConfirmation()
+    Email -> User: Email s potvrzením
+    Backend --> Frontend: Reservation confirmed
+    Frontend --> User: Potvrzení rezervace
+end
+
+User -> Frontend: Přesměrování na "Moje rezervace"
+
+@enduml

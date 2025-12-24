@@ -1,4 +1,5 @@
 @startuml
+skinparam handwritten false
 title Diagram relačního modelu databáze
 
 !define table(x) class x << (T,#FFAAAA) >>

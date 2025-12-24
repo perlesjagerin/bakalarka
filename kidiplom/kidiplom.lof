@@ -1,0 +1,8 @@
+\babel@toc {czech}{}\relax 
+\contentsline {figure}{\numberline {1}{\ignorespaces Sekvenční diagram procesu rezervace a platby}}{16}{figure.1}%
+\contentsline {figure}{\numberline {2}{\ignorespaces Stavový diagram rezervace}}{17}{figure.2}%
+\contentsline {figure}{\numberline {3}{\ignorespaces Třívrstvá architektura aplikace s externími službami}}{17}{figure.3}%
+\contentsline {figure}{\numberline {4}{\ignorespaces Sekvenční diagram procesu autentizace s JWT tokeny}}{18}{figure.4}%
+\contentsline {figure}{\numberline {5}{\ignorespaces Relační model databáze - 5 tabulek s vazbami}}{19}{figure.5}%
+\contentsline {figure}{\numberline {6}{\ignorespaces Diagram tříd - Backend struktura (MVC pattern)}}{20}{figure.6}%
+\contentsline {figure}{\numberline {7}{\ignorespaces Diagram případu použití - Rezervační systém}}{27}{figure.7}%

@@ -1,4 +1,5 @@
 @startuml
+skinparam handwritten false
 title Diagram tříd - Backend architektura
 
 package "Controllers" {
