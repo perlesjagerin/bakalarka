@@ -114,7 +114,7 @@ program=itk,
 
 %% Volitelné poděkování. Stručné! Výchozí je prázdné. Makro nemá
 %% nepovinný parametr pro uvedení jazyka.
-\thanks{Děkuji vedoucímu práce Mgr. Jiřímu Zacpalovi, Ph.D. za odborné vedení a cenné rady při tvorbě této práce. Dále děkuji své rodině za podporu během celého studia.}
+\thanks{Rád bych poděkoval vedoucímu práce Mgr. Jiřímu Zacpalovi, Ph.D. za cenné připomínky a konzultace během zpracování této práce. Zvláštní poděkování patří mé rodině za trpělivost a podporu v průběhu celého studia.}
 
 %% Cesta k souboru s bibliografií pro její sazbu pomocí BibLaTeXu
 %% (zvolenou nepovinným parametrem biblatex makra
@@ -126,6 +126,7 @@ program=itk,
 %% práce.
 \usepackage{lipsum}
 \usepackage{longtable}
+\usepackage{rotating}
 
 \begin{document}
 %% Sazba úvodních stran -- titulní, s bibliografickými údaji, s
@@ -213,7 +214,7 @@ Pro akce zdarma (ticketPrice = 0) je rezervace okamžitě potvrzena bez platebn�
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.9\textwidth]{graphics/reservation-flow.png}
+    \includegraphics[width=0.75\textwidth]{graphics/reservation-flow.png}
     \caption{Sekvenční diagram procesu rezervace a platby}
     \label{fig:reservationflow}
 \end{figure}
@@ -261,7 +262,7 @@ Implementovány jsou i další knihovny: \textbf{Nodemailer} pro odesílání em
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.95\textwidth]{graphics/architecture.png}
+    \includegraphics[width=0.8\textwidth]{graphics/architecture.png}
     \caption{Třívrstvá architektura aplikace s externími službami}
     \label{fig:architecture}
 \end{figure}
@@ -301,7 +302,7 @@ Hesla jsou bezpečně hashována pomocí \textbf{bcryptjs} s salt rounds nastave
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.85\textwidth]{graphics/auth-flow.png}
+    \includegraphics[width=0.65\textwidth]{graphics/auth-flow.png}
     \caption{Sekvenční diagram procesu autentizace s JWT tokeny}
     \label{fig:authflow}
 \end{figure}
@@ -392,12 +393,12 @@ Databázový model obsahuje 5 hlavních entit (User, Event, Reservation, Payment
 
 \clearpage
 \subsection{Diagram tříd}
-\begin{figure}[h!]
+\begin{sidewaysfigure}
     \centering
-    \includegraphics[width=1.0\textwidth]{graphics/class-diagram.png}
+    \includegraphics[width=0.95\textheight]{graphics/class-diagram.png}
     \caption{Diagram tříd - Backend struktura (MVC pattern)}
     \label{fig:classdiagram}
-\end{figure}
+\end{sidewaysfigure}
 
 Architektura backendu je rozdělena do čtyř hlavních vrstev: Controllers (zpracování HTTP požadavků), Services (business logika), Middleware (autentizace, validace, error handling) a Database (Prisma ORM). Všechny služby sdílejí přístup k Prisma klientovi pro práci s databází. EmailService a TicketGenerator jsou pomocné třídy volané z různých služeb pro odesílání notifikací a generování PDF vstupenek.
 
